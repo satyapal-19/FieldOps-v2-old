@@ -1,0 +1,66 @@
+# FieldOps backend - PRODUCTION settings template.
+# On the SMKC server, set these as real environment variables (PM2 ecosystem file or
+# Windows service config) or in a .env.production file that is never committed.
+NODE_ENV=production
+PORT=3000
+LOG_LEVEL=info
+# Required in production: exact origins of the web dashboard and citizen site.
+CORS_ORIGINS=https://fieldops.example.smkc.gov.in
+SWAGGER_ENABLED=false
+
+DB_TYPE=oracle
+DB_HOST=db-host-on-private-network
+DB_PORT=1521
+DB_USERNAME=fieldops_app
+DB_PASSWORD=set-on-server-only
+DB_SERVICE_NAME=FIELDOPS
+DB_POOL_MAX=40
+DB_SLOW_QUERY_MS=500
+DB_SSL=false
+
+# Must be false in production; the server refuses to start otherwise.
+AUTH_TEST_LOGIN_ENABLED=false
+
+# 32+ random characters each, unique per environment.
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+
+# Sign-in. Access tokens are short; refresh tokens rotate on every use.
+JWT_ACCESS_TTL_SECONDS=900
+AUTH_REFRESH_TTL_DAYS=30
+AUTH_MAX_SESSIONS_PER_STAFF=5
+# OTP delivery: sms_http (SMKC's SMS gateway) or disabled. 'log' is refused in production.
+OTP_SENDER=disabled
+OTP_TTL_SECONDS=300
+OTP_MAX_ATTEMPTS=5
+OTP_MAX_PER_15_MIN=3
+# Only when OTP_SENDER=sms_http. {phone} gets 91 + the 10-digit number; the text must match
+# SMKC's DLT-registered template.
+# SMS_GATEWAY_URL=https://<gateway>/send?mobile={phone}&message={message}&senderid={senderId}&templateid={templateId}
+# SMS_GATEWAY_METHOD=GET
+# SMS_OTP_MESSAGE={otp} is your FieldOps SMKMC login code. Valid for {minutes} minutes. Do not share it.
+# SMS_SENDER_ID=
+# SMS_DLT_TEMPLATE_ID=
+# SMS_TIMEOUT_MS=8000
+RATE_LIMIT_PER_MINUTE=300
+SIGN_IN_RATE_LIMIT_PER_MINUTE=30
+# Behind IIS (ARR reverse proxy) set to 1 so audit rows and rate limits see client IPs.
+TRUST_PROXY=1
+
+# Face verification: local (AuraFace on our server, default) or aadhaar (UIDAI via SMKC's ASA).
+FACE_PROVIDER=local
+FACE_MATCH_THRESHOLD=0.45
+FACE_LIVENESS_THRESHOLD=0.5
+# Only when FACE_PROVIDER=aadhaar (values issued to SMKC by UIDAI / its ASA):
+# AADHAAR_ENV=PP                      # PP pre-production, P production
+# AADHAAR_API_VERSION=2.5
+# AADHAAR_PID_VERSION=2.0
+# AADHAAR_LANGUAGE=mr
+# AADHAAR_AUA_CODE=
+# AADHAAR_SUB_AUA_CODE=
+# AADHAAR_LICENSE_KEY=
+# AADHAAR_ASA_LICENSE_KEY=
+# AADHAAR_ASA_URL_TEMPLATE=https://<asa-host>/{ver}/{ac}/{uid0}/{uid1}/{asalk}
+# AADHAAR_SIGNING_KEY_PATH=C:\fieldops\keys\aua-signing.key
+# AADHAAR_SIGNING_CERT_PATH=C:\fieldops\keys\aua-signing.crt
+# AADHAAR_TIMEOUT_MS=15000

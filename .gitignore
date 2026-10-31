@@ -1,0 +1,74 @@
+# Root .gitignore for FieldOps
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production & Build outputs
+dist/
+dist-ssr/
+build/
+*.apk
+*.aab
+*.ipa
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.lock-wscript
+
+# Android build outputs & caches
+.gradle/
+local.properties
+**/android/.gradle
+**/android/captures
+**/android/gradleBuild
+
+# Environment variables & secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Per-environment settings (only *.example files are committed)
+.env.development
+.env.test
+.env.production
+!*.example
+
+# Test & framework outputs
+coverage/
+.next/
+out/
+*.tsbuildinfo
+
+# Kotlin compiler daemon logs (Android builds)
+**/android/.kotlin/
+
+# IntelliJ / Android Studio module files
+*.iml
+
+# Claude Code: personal settings and notes stay local (shared settings.json is committed)
+.claude/settings.local.json
+CLAUDE.local.md

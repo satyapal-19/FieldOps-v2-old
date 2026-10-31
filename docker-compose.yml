@@ -1,0 +1,46 @@
+# Local development databases. Credentials come from ./.env (git-ignored; copy .env.example).
+#   docker compose up -d postgres                 # PostgreSQL 16 (dev + test databases)
+#   docker compose --profile oracle up -d oracle  # Oracle XE, for portability checks
+# Oracle XE 21 is the closest freely available image to production's Oracle 12c; the
+# schema avoids 12.2+ features (identifiers <= 30 chars, no JSON / BOOLEAN types).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fieldops-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: fieldops_dev
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d fieldops_dev"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  oracle:
+    image: gvenzl/oracle-xe:21-slim-faststart
+    container_name: fieldops-oracle
+    profiles: ["oracle"]
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?set ORACLE_PASSWORD in .env}
+      APP_USER: fieldops
+      APP_USER_PASSWORD: ${ORACLE_APP_PASSWORD:?set ORACLE_APP_PASSWORD in .env}
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracledata:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  pgdata:
+  oracledata:

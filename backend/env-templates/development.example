@@ -1,0 +1,58 @@
+# FieldOps backend - DEVELOPMENT settings.
+# Copy to backend/.env.development (git-ignored) and fill in local values.
+NODE_ENV=development
+PORT=3000
+LOG_LEVEL=debug
+CORS_ORIGINS=http://localhost:3001,http://localhost:5173
+SWAGGER_ENABLED=true
+
+# Database: postgres (development) or oracle (portability checks)
+DB_TYPE=postgres
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=fieldops
+DB_PASSWORD=change-me-local
+DB_NAME=fieldops_dev
+# DB_SERVICE_NAME=XEPDB1   # oracle only
+DB_POOL_MAX=20
+DB_SLOW_QUERY_MS=500
+DB_SSL=false
+
+# Test login (no OTP, fixed test accounts). Allowed only in development and test.
+AUTH_TEST_LOGIN_ENABLED=true
+
+# JWT secrets (phase 1). At least 16 chars here; 32+ required in production.
+JWT_ACCESS_SECRET=dev-only-access-secret-change-me
+JWT_REFRESH_SECRET=dev-only-refresh-secret-change-me
+
+# Sign-in. Access tokens are short; refresh tokens rotate on every use.
+JWT_ACCESS_TTL_SECONDS=900
+AUTH_REFRESH_TTL_DAYS=30
+AUTH_MAX_SESSIONS_PER_STAFF=5
+# OTP delivery: log (prints codes to this console - dev/test only), sms_http, or disabled.
+OTP_SENDER=log
+OTP_TTL_SECONDS=300
+OTP_MAX_ATTEMPTS=5
+OTP_MAX_PER_15_MIN=3
+# Requests per minute (per signed-in user, else per IP); sign-in endpoints per IP.
+RATE_LIMIT_PER_MINUTE=300
+SIGN_IN_RATE_LIMIT_PER_MINUTE=30
+TRUST_PROXY=false
+
+# Face verification: local (AuraFace on our server, default) or aadhaar (UIDAI via SMKC's ASA).
+FACE_PROVIDER=local
+FACE_MATCH_THRESHOLD=0.45
+FACE_LIVENESS_THRESHOLD=0.5
+# Only when FACE_PROVIDER=aadhaar (values issued to SMKC by UIDAI / its ASA):
+# AADHAAR_ENV=PP                      # PP pre-production, P production
+# AADHAAR_API_VERSION=2.5
+# AADHAAR_PID_VERSION=2.0
+# AADHAAR_LANGUAGE=mr
+# AADHAAR_AUA_CODE=
+# AADHAAR_SUB_AUA_CODE=
+# AADHAAR_LICENSE_KEY=
+# AADHAAR_ASA_LICENSE_KEY=
+# AADHAAR_ASA_URL_TEMPLATE=https://<asa-host>/{ver}/{ac}/{uid0}/{uid1}/{asalk}
+# AADHAAR_SIGNING_KEY_PATH=C:\fieldops\keys\aua-signing.key
+# AADHAAR_SIGNING_CERT_PATH=C:\fieldops\keys\aua-signing.crt
+# AADHAAR_TIMEOUT_MS=15000
