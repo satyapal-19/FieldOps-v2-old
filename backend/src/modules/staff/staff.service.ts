@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { EntityManager } from 'typeorm';
+import { Role } from '../../shared/auth/roles';
 import { Staff } from './entities/staff.entity';
 import { StaffChanges, StaffListFilter, StaffRepository } from './staff.repository';
 
@@ -16,6 +17,20 @@ export class StaffService {
 
   findPage(filter: StaffListFilter, skip: number, take: number): Promise<[Staff[], number]> {
     return this.staff.findPage(filter, skip, take);
+  }
+
+  findActiveIds(ids: readonly string[]): Promise<Set<string>> {
+    return ids.length === 0 ? Promise.resolve(new Set()) : this.staff.findActiveIds(ids);
+  }
+
+  /** The active ward inspector of a ward, or null (v4: one fixed ward inspector per ward). */
+  async findWardInspector(wardId: string): Promise<Staff | null> {
+    const [rows] = await this.staff.findPage(
+      { role: Role.WARD_INSPECTOR, wardId, isActive: true },
+      0,
+      1,
+    );
+    return rows[0] ?? null;
   }
 
   insert(staff: Staff, tx?: EntityManager): Promise<void> {

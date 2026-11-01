@@ -46,6 +46,21 @@ export class StaffRepository {
     return this.repo.findOne({ where: { employeeCode } });
   }
 
+  /** Ids of the given staff that are active. Chunked: Oracle allows at most 1000 items in IN. */
+  async findActiveIds(ids: readonly string[]): Promise<Set<string>> {
+    const active = new Set<string>();
+    for (let i = 0; i < ids.length; i += 1000) {
+      const rows = await this.repo
+        .createQueryBuilder('s')
+        .select('s.id', 'id')
+        .where('s.id IN (:...ids)', { ids: ids.slice(i, i + 1000) })
+        .andWhere('s.isActive = 1')
+        .getRawMany<{ id: string }>();
+      rows.forEach((r) => active.add(r.id));
+    }
+    return active;
+  }
+
   findPage(filter: StaffListFilter, skip: number, take: number): Promise<[Staff[], number]> {
     const qb = this.repo.createQueryBuilder('s');
     if (filter.role) qb.andWhere('s.role = :role', { role: filter.role });

@@ -31,6 +31,10 @@ export enum ErrorCode {
   STAFF_IDENTITY_TAKEN = 'STAFF_IDENTITY_TAKEN',
   OFFICE_CODE_TAKEN = 'OFFICE_CODE_TAKEN',
 
+  // Rosters and assignments
+  ROSTER_WORKER_TAKEN = 'ROSTER_WORKER_TAKEN',
+  ASSIGNMENT_EXISTS = 'ASSIGNMENT_EXISTS',
+
   // Wards
   WARD_CODE_TAKEN = 'WARD_CODE_TAKEN',
   INVALID_BOUNDARY = 'INVALID_BOUNDARY',
@@ -65,19 +69,31 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
   [ErrorCode.SERVICE_UNAVAILABLE]: { status: 503, title: 'The service is not ready' },
   [ErrorCode.INTERNAL_ERROR]: { status: 500, title: 'Something went wrong on the server' },
 
-  [ErrorCode.AUTH_INVALID_CREDENTIALS]: { status: 401, title: 'Wrong employee code / phone or password' },
-  [ErrorCode.AUTH_OTP_INVALID]: { status: 401, title: 'The code is not correct; check the SMS and try again' },
+  [ErrorCode.AUTH_INVALID_CREDENTIALS]: {
+    status: 401,
+    title: 'Wrong employee code / phone or password',
+  },
+  [ErrorCode.AUTH_OTP_INVALID]: {
+    status: 401,
+    title: 'The code is not correct; check the SMS and try again',
+  },
   [ErrorCode.AUTH_OTP_EXPIRED]: { status: 401, title: 'The code has expired; request a new one' },
   [ErrorCode.AUTH_OTP_TOO_MANY_ATTEMPTS]: {
     status: 429,
     title: 'Too many wrong codes; request a new one',
   },
-  [ErrorCode.AUTH_OTP_RATE_LIMITED]: { status: 429, title: 'Too many codes requested; wait 15 minutes' },
+  [ErrorCode.AUTH_OTP_RATE_LIMITED]: {
+    status: 429,
+    title: 'Too many codes requested; wait 15 minutes',
+  },
   [ErrorCode.AUTH_OTP_DELIVERY_UNAVAILABLE]: {
     status: 503,
     title: 'SMS sign-in codes cannot be sent right now',
   },
-  [ErrorCode.AUTH_SESSION_REVOKED]: { status: 401, title: 'You were signed out; please sign in again' },
+  [ErrorCode.AUTH_SESSION_REVOKED]: {
+    status: 401,
+    title: 'You were signed out; please sign in again',
+  },
   [ErrorCode.AUTH_ACCOUNT_INACTIVE]: { status: 403, title: 'This account is deactivated' },
   [ErrorCode.AUTH_WEAK_PASSWORD]: { status: 422, title: 'Choose a stronger password' },
 
@@ -86,6 +102,15 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
     title: 'Another staff member already has this phone or employee code',
   },
   [ErrorCode.OFFICE_CODE_TAKEN]: { status: 409, title: 'An office with this code already exists' },
+
+  [ErrorCode.ROSTER_WORKER_TAKEN]: {
+    status: 409,
+    title: 'This worker is already in a standing squad',
+  },
+  [ErrorCode.ASSIGNMENT_EXISTS]: {
+    status: 409,
+    title: 'This person already has an assignment for that day',
+  },
 
   [ErrorCode.WARD_CODE_TAKEN]: { status: 409, title: 'A ward with this code already exists' },
   [ErrorCode.INVALID_BOUNDARY]: { status: 422, title: 'The ward boundary is not a valid polygon' },
@@ -99,7 +124,10 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
     status: 422,
     title: 'No enrolled face for this person; ask an administrator to enrol you',
   },
-  [ErrorCode.AADHAAR_CAPTURE_FAILED]: { status: 422, title: 'Aadhaar face capture failed; try again' },
+  [ErrorCode.AADHAAR_CAPTURE_FAILED]: {
+    status: 422,
+    title: 'Aadhaar face capture failed; try again',
+  },
   [ErrorCode.AADHAAR_IDENTITY_MISSING]: {
     status: 422,
     title: 'This person is not linked for Aadhaar face authentication',
