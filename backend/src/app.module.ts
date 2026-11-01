@@ -4,6 +4,7 @@ import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FaceModule } from './modules/face/face.module';
 import { OfficesModule } from './modules/offices/offices.module';
+import { StaffAdminModule } from './modules/staff-admin/staff-admin.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { WardsModule } from './modules/wards/wards.module';
 import { AuditModule } from './shared/audit/audit.module';
@@ -23,6 +24,7 @@ import { SharedModule } from './shared/shared.module';
     AuthModule,
     // Feature modules
     StaffModule,
+    StaffAdminModule,
     WardsModule,
     OfficesModule,
     FaceModule,

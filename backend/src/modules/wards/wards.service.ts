@@ -53,6 +53,12 @@ export class WardsService {
     return toWardDto(await this.findOrThrow(id));
   }
 
+  /** For other modules (staff links, rosters): does an active ward with this id exist? */
+  async exists(id: string): Promise<boolean> {
+    const ward = await this.wards.findById(id);
+    return ward !== null && Boolean(Number(ward.isActive));
+  }
+
   async create(dto: CreateWardDto): Promise<WardDto> {
     const code = normalizeWardCode(dto.code);
     if (await this.wards.findByCode(code)) {
@@ -75,7 +81,12 @@ export class WardsService {
 
     await this.uow.run(async (tx) => {
       await this.wards.insert(ward, tx);
-      await this.audit.write(tx, { action: 'WARD_CREATED', entityType: 'ward', entityId: ward.id, details: { code } });
+      await this.audit.write(tx, {
+        action: 'WARD_CREATED',
+        entityType: 'ward',
+        entityId: ward.id,
+        details: { code },
+      });
     });
     return toWardDto(ward);
   }
