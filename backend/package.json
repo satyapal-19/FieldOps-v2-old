@@ -23,6 +23,8 @@
     "migration:show": "typeorm -d dist/shared/database/data-source.js migration:show",
     "db:migrate:dev": "npm run build && cross-env NODE_ENV=development npm run migration:run",
     "db:migrate:test": "npm run build && cross-env NODE_ENV=test npm run migration:run",
+    "db:seed:dev": "npm run build && cross-env NODE_ENV=development node dist/database/seed/run-seed.js",
+    "db:seed:test": "npm run build && cross-env NODE_ENV=test node dist/database/seed/run-seed.js",
     "openapi:export": "cross-env NODE_ENV=development node dist/openapi/export-openapi.js"
   },
   "dependencies": {
