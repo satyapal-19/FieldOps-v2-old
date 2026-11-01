@@ -34,7 +34,8 @@ Flutter app / Next.js web  →  REST API (JSON, /api/v1)  →  NestJS services +
 | `mobile/fieldops_mobile/` | Flutter + GetX field-staff app, still on Supabase — see its `CLAUDE.md` | Migrates in Phase 3 |
 | `database/` | Postgres init scripts; exported DDL + ER diagram later (Phase 5) | |
 | `data/` | **Legacy** Supabase `schema.sql` / `seed.sql` — never run against the new backend | Reference only |
-| `scripts/` | G0 check, local Postgres setup, API client generation, `ci/` workflow | |
+| `scripts/` | G0 check, local Postgres setup, API client generation | |
+| `.github/workflows/ci.yml` | GitHub Actions: backend lint, unit, migrations, e2e on every push / PR | Web + Dart jobs off until Phase 3 (`CI_CLIENTS`) |
 | `docs/` | Plans, reviews, SMKC stack PDF (Word files are the source of truth for plans) | |
 
 ## Commands (Windows dev machine, PowerShell or cmd)

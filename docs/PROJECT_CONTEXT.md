@@ -69,7 +69,9 @@ sustain 50 punches/s, p95 < 500 ms, zero duplicates · ~17M ping rows at 90 days
 ## Open items
 
 - Final submission date not confirmed — re-date phases when known.
-- Move `scripts/ci/github-actions-ci.yml` to `.github/workflows/ci.yml` (enables CI on GitHub).
+- CI is live in `.github/workflows/ci.yml` (1 Nov): backend lint, unit, build, migrations, e2e on every
+  push and pull request. Web and Dart-client jobs are off until Phase 3; turn them on with the repo
+  variable `CI_CLIENTS=true` once `openapi/openapi.json` and the generated clients are committed.
 - Face benchmark needs pilot (Ward 4) photos at the start of Phase 2.
 - The legacy mobile app still has demo OTP, fail-open face match and Supabase calls (Phase 3).
 
