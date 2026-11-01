@@ -77,5 +77,10 @@ Before saying backend work is done: `npm run lint`, `npm test` and (if schema or
   Only produce a new Word file when the user asks for one.
 - Keep the action plan's phase checkboxes in sync when a task completes.
 - Line endings: the team works on Windows; keep `.bat`/`.ps1` as CRLF (see `.gitattributes`).
-- Git remote: `origin` = https://github.com/smkc-fieldops/FieldOps-v2 (branch `main`).
+- Git (fork workflow):
+  - `origin` = https://github.com/satyapal-19/FieldOps-v2 — commit and push here.
+  - `upstream` = https://github.com/smkc-fieldops/FieldOps-v2 — the team repo; changes reach it through pull requests.
+    Sync with `git fetch upstream` then `git merge upstream/v2-main` (or rebase) on `v2-main`.
+  - Working branch **`v2-main`** (default on both), tracking `origin/v2-main`.
+  - `legacy-main` / remote `legacy-dev` (old FieldOps-DEV history) are read-only reference; never push to them.
   Use conventional commits (`feat(auth): …`, `fix(face): …`, `docs: …`).
