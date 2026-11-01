@@ -4,6 +4,9 @@ import { LocationPing } from '../modules/attendance/entities/location-ping.entit
 import { TamperEvent } from '../modules/attendance/entities/tamper-event.entity';
 import { AuthOtp } from '../modules/auth/entities/auth-otp.entity';
 import { AuthSession } from '../modules/auth/entities/auth-session.entity';
+import { ConversationParticipant } from '../modules/chat/entities/conversation-participant.entity';
+import { Conversation } from '../modules/chat/entities/conversation.entity';
+import { Message } from '../modules/chat/entities/message.entity';
 import { CitizenComplaint } from '../modules/complaints/entities/citizen-complaint.entity';
 import { Holiday } from '../modules/holidays/entities/holiday.entity';
 import { LeaveRequest } from '../modules/leave/entities/leave-request.entity';
@@ -41,4 +44,7 @@ export const ENTITIES = [
   RegularizationRequest,
   Holiday,
   Alert,
+  Conversation,
+  ConversationParticipant,
+  Message,
 ];

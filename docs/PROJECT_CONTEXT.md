@@ -36,7 +36,7 @@ Payroll and QR-checkpoint attendance are removed.
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 Foundations | Backend scaffold, shared kit, wards reference module, Next.js scaffold, Docker, CI | **Done — Gate G0 passed 31 Oct 2026** on the dev PC |
-| 1 Backend core | Portable schema, auth, RBAC, CRUD, audit, Swagger, seed | **In progress**: auth, offices, staff (no controller yet), audit, face interface + Aadhaar adapter done; standing rosters, daily assignments and shifts tables + entities done (1 Nov). Remaining: attendance, pings, tasks, complaints, leave, holidays, alerts, chat, spot checks tables; idempotency columns on those; RBAC scope guards; staff/roster CRUD; seed |
+| 1 Backend core | Portable schema, auth, RBAC, CRUD, audit, Swagger, seed | **In progress**: auth, offices, staff (no controller yet), audit, face interface + Aadhaar adapter done; **full portable schema done (1 Nov)**: rosters, assignments, shifts, attendance, pings, tamper events, spot checks, tasks + task updates, complaints, leave, regularization, holidays, alerts, chat — each with client UUIDs and version columns where needed. Remaining: RBAC scope guards; staff/roster CRUD; seed |
 | 2 Attendance engine | Policies, geo service, liveness challenge, face engine (benchmark first), punch, pings, jobs | Not started |
 | 3 Client migration | Web pages to Next.js, both apps to the API, Supabase removed | Not started |
 | 4 Extended features | Spot checks, co-presence, chat, voice, notifications, offline tiles, muster roll | Not started |
