@@ -72,3 +72,7 @@ out/
 # Claude Code: personal settings and notes stay local (shared settings.json is committed)
 .claude/settings.local.json
 CLAUDE.local.md
+
+# AI assistant guides stay local, not in the repository
+CLAUDE.md
+**/CLAUDE.md
