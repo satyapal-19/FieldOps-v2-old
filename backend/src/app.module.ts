@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { FaceModule } from './modules/face/face.module';
 import { OfficesModule } from './modules/offices/offices.module';
 import { RostersModule } from './modules/rosters/rosters.module';
+import { ShiftsModule } from './modules/shifts/shifts.module';
 import { StaffAdminModule } from './modules/staff-admin/staff-admin.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { WardsModule } from './modules/wards/wards.module';
@@ -29,6 +30,7 @@ import { SharedModule } from './shared/shared.module';
     WardsModule,
     OfficesModule,
     RostersModule,
+    ShiftsModule,
     FaceModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor }],
