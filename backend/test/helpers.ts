@@ -52,7 +52,17 @@ export async function createTestApp(): Promise<TestApp> {
 
 /** Deletes every row, children before parents (TRUNCATE is refused with foreign keys). */
 export async function resetDatabase(dataSource: DataSource): Promise<void> {
-  const order = ['AuditLog', 'AuthSession', 'AuthOtp', 'Staff', 'CorporationOffice', 'Ward'];
+  const order = [
+    'AuditLog',
+    'AuthSession',
+    'AuthOtp',
+    'Shift',
+    'DailyAssignment',
+    'StandingRoster',
+    'Staff',
+    'CorporationOffice',
+    'Ward',
+  ];
   const byName = new Map(ENTITIES.map((e) => [e.name, e]));
   for (const name of order) {
     const entity = byName.get(name);
@@ -69,7 +79,13 @@ let phoneCounter = 0;
 
 export async function seedStaff(
   dataSource: DataSource,
-  fields: { role: StaffRole; employeeCode: string; homeWardId?: string | null; officeId?: string | null; password?: string },
+  fields: {
+    role: StaffRole;
+    employeeCode: string;
+    homeWardId?: string | null;
+    officeId?: string | null;
+    password?: string;
+  },
 ): Promise<Staff> {
   phoneCounter += 1;
   const now = new Date();

@@ -28,9 +28,10 @@ test/                 e2e tests (supertest) against the fieldops_test database
 | auth | `otp/request`, `otp/verify`, `login`, `test-login`, `refresh`, `logout`, `me`, `change-password`, `staff/:id/revoke-sessions` | OTP for field roles, bcrypt passwords for ADMIN / WARD_INSPECTOR / OFFICE_STAFF, rotating refresh sessions, rate limits |
 | face | `GET face/capture-options` | `FaceVerifier` with `local` (AuraFace via ONNX — engine is a placeholder until Phase 2) and `aadhaar` (UIDAI FaceRD, plug-in ready) providers; see `modules/face/README.md` |
 | shared/audit | — | `audit_log` written in the same transaction |
+| rosters, shifts | (entities only; CRUD next) | `standing_rosters`, `daily_assignments` (one row per person per IST date), `shifts` (per-day override of staff shift times) |
 
-Migrations: wards → offices + staff → auth + audit. Gate G0 passed on 31 Oct 2026 (16 unit suites /
-154 tests, 2 e2e suites / 27 tests).
+Migrations: wards → offices + staff → auth + audit → rosters + shifts. Gate G0 passed on 31 Oct 2026
+(16 unit suites / 154 tests, 2 e2e suites / 27 tests); now 3 e2e suites / 43 tests.
 
 ## Rules for new code
 
