@@ -20,7 +20,7 @@ import type { Staff } from '../staff/entities/staff.entity';
 import { StaffService } from '../staff/staff.service';
 import type { EffectiveShiftDto, PutShiftDto, ShiftDto } from './dto/shifts.dto';
 import { Shift } from './entities/shift.entity';
-import { checkShiftTimes, effectiveShift, ShiftRuleError } from './shifts.policy';
+import { checkShiftTimes, EffectiveShift, effectiveShift, ShiftRuleError } from './shifts.policy';
 import { ShiftsRepository } from './shifts.repository';
 
 const MAX_RANGE_DAYS = 62;
@@ -81,6 +81,14 @@ export class ShiftsService {
     if (!person) throw new AppError(ErrorCode.NOT_FOUND, 'Staff member not found', { id: staffId });
     const s = effectiveShift(date, person, await this.repo.findFor(staffId, date));
     return { staffId, ...s, startsAt: s.startsAt.toISOString(), endsAt: s.endsAt.toISOString() };
+  }
+
+  /** For the attendance engine: the shift window (UTC instants) of a person on an IST date. */
+  async shiftFor(
+    person: Pick<Staff, 'id' | 'shiftStart' | 'shiftEnd'>,
+    date: string,
+  ): Promise<EffectiveShift> {
+    return effectiveShift(date, person, await this.repo.findFor(person.id, date));
   }
 
   async effectiveFor(actor: AuthUser, staffId: string, date: string): Promise<EffectiveShiftDto> {

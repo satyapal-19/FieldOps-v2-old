@@ -1,5 +1,6 @@
 import { Alert } from '../modules/alerts/entities/alert.entity';
 import { AttendanceLog } from '../modules/attendance/entities/attendance-log.entity';
+import { LivenessChallenge } from '../modules/attendance/entities/liveness-challenge.entity';
 import { LocationPing } from '../modules/attendance/entities/location-ping.entity';
 import { TamperEvent } from '../modules/attendance/entities/tamper-event.entity';
 import { AuthOtp } from '../modules/auth/entities/auth-otp.entity';
@@ -34,6 +35,7 @@ export const ENTITIES = [
   DailyAssignment,
   Shift,
   AttendanceLog,
+  LivenessChallenge,
   LocationPing,
   TamperEvent,
   SpotCheck,

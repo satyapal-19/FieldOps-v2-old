@@ -3,13 +3,14 @@
  * and seed staff directly (staff CRUD endpoints arrive in phase 1B).
  */
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import * as bcrypt from 'bcryptjs';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { OtpMessage, OtpSender } from '../src/modules/auth/otp/otp-sender';
+import { CorporationOffice } from '../src/modules/offices/entities/corporation-office.entity';
 import { Staff } from '../src/modules/staff/entities/staff.entity';
 import { Ward } from '../src/modules/wards/entities/ward.entity';
 import type { StaffRole } from '../src/shared/auth/roles';
@@ -35,12 +36,16 @@ export interface TestApp {
   otp: CapturingOtpSender;
 }
 
-export async function createTestApp(): Promise<TestApp> {
+/** Extra provider overrides for one suite, e.g. a FixedClock or a fake FaceVerifier. */
+export type TestOverrides = (builder: TestingModuleBuilder) => TestingModuleBuilder;
+
+export async function createTestApp(overrides?: TestOverrides): Promise<TestApp> {
   const otp = new CapturingOtpSender();
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
+  let builder = Test.createTestingModule({ imports: [AppModule] })
     .overrideProvider(OtpSender)
-    .useValue(otp)
-    .compile();
+    .useValue(otp);
+  if (overrides) builder = overrides(builder);
+  const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication({ bufferLogs: true });
   configureApp(app);
   await app.init();
@@ -71,6 +76,7 @@ export async function resetDatabase(dataSource: DataSource): Promise<void> {
     'TamperEvent',
     'LocationPing',
     'AttendanceLog',
+    'LivenessChallenge',
     'Shift',
     'DailyAssignment',
     'StandingRoster',
@@ -157,6 +163,29 @@ export async function insertWard(
 export async function bearerFor(http: TestApp['http'], identifier: string): Promise<string> {
   const res = await http.post('/api/v1/auth/test-login').send({ identifier }).expect(200);
   return `Bearer ${res.body.accessToken as string}`;
+}
+
+export async function insertOffice(
+  dataSource: DataSource,
+  code: string,
+  premises: object = SQUARE_BOUNDARY,
+): Promise<string> {
+  const now = new Date();
+  const office: CorporationOffice = {
+    id: randomUUID(),
+    code,
+    name: `Office ${code}`,
+    nameMr: `कार्यालय ${code}`,
+    zone: 'SANGLI',
+    premisesGeojson: JSON.stringify(premises),
+    bufferMeters: 100,
+    isActive: true,
+    version: 1,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await dataSource.getRepository(CorporationOffice).insert(office);
+  return office.id;
 }
 
 export const SQUARE_BOUNDARY = {

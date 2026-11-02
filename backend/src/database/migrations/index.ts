@@ -5,6 +5,7 @@ import { CreateRostersAndShifts1793318400000 } from './1793318400000-create-rost
 import { CreateAttendanceAndTracking1793318400100 } from './1793318400100-create-attendance-and-tracking';
 import { CreateTasksAndRequests1793318400200 } from './1793318400200-create-tasks-and-requests';
 import { CreateChat1793318400300 } from './1793318400300-create-chat';
+import { CreateLivenessChallenges1793404800000 } from './1793404800000-create-liveness-challenges';
 
 /** Every migration, oldest first. Add new migrations at the end. */
 export const MIGRATIONS = [
@@ -15,4 +16,5 @@ export const MIGRATIONS = [
   CreateAttendanceAndTracking1793318400100,
   CreateTasksAndRequests1793318400200,
   CreateChat1793318400300,
+  CreateLivenessChallenges1793404800000,
 ];

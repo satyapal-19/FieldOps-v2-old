@@ -17,6 +17,7 @@ import { Ward } from './entities/ward.entity';
 import {
   checkLocationInWard,
   GeoPoint,
+  LocationCheck,
   normalizeWardCode,
   parseWardBoundary,
 } from './wards.policy';
@@ -71,6 +72,17 @@ export class WardsService {
     }));
     const hit = checks.find((x) => x.c.inside) ?? checks.find((x) => x.c.withinTolerance);
     return hit ? { id: hit.w.id, code: hit.w.code } : null;
+  }
+
+  /**
+   * For the attendance engine: a ward's geofence parsed once, to test many points (a ping
+   * batch) without re-reading the boundary. Null when the ward does not exist.
+   */
+  async geofence(id: string): Promise<((point: GeoPoint) => LocationCheck) | null> {
+    const ward = await this.wards.findById(id);
+    if (!ward) return null;
+    const boundary = parseWardBoundary(ward.boundaryGeojson);
+    return (point) => checkLocationInWard(boundary, point);
   }
 
   /** For other modules (staff links, rosters): does an active ward with this id exist? */

@@ -83,6 +83,17 @@ export class LeaveRepository {
       .getOne();
   }
 
+  /** Approved leave of this person covering `date`. */
+  findApprovedLeaveOn(staffId: string, date: string): Promise<LeaveRequest | null> {
+    return this.leave
+      .createQueryBuilder('l')
+      .where('l.staffId = :staffId', { staffId })
+      .andWhere('l.status = :approved', { approved: 'APPROVED' })
+      .andWhere('l.fromDate <= :date', { date })
+      .andWhere('l.toDate >= :date', { date })
+      .getOne();
+  }
+
   findLeavePage(
     filter: RequestFilter,
     skip: number,

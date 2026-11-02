@@ -106,6 +106,11 @@ export class LeaveService {
     private readonly audit: AuditWriter,
   ) {}
 
+  /** For the attendance engine: is this person on approved leave on an IST date? */
+  async isOnApprovedLeave(staffId: string, date: string): Promise<boolean> {
+    return (await this.repo.findApprovedLeaveOn(staffId, date)) !== null;
+  }
+
   // ------------------------------------------------------------ Leave
 
   async listLeave(actor: AuthUser, q: ListRequestsQueryDto): Promise<LeavePageDto> {

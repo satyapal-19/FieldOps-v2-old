@@ -483,6 +483,11 @@ export class RostersService {
     });
   }
 
+  /** For the attendance engine: a person's daily assignment on an IST date, if any. */
+  assignmentFor(date: string, staffId: string): Promise<DailyAssignment | null> {
+    return this.repo.findAssignmentFor(date, staffId);
+  }
+
   private async person(id: string): Promise<Staff> {
     const s = await this.staff.findById(id);
     if (!s) throw new AppError(ErrorCode.RULE_VIOLATION, 'Staff member not found', { id });
