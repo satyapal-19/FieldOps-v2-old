@@ -8,6 +8,7 @@ import { CSRF_HEADERS } from '@/api/client';
 import { menuFor, type WebRole } from '@/shared/auth/route-table';
 import { useLocale } from '@/shared/i18n/locale';
 import { LanguageSwitch } from '@/shared/ui/language-switch';
+import { RoleProvider } from './role-context';
 import { useMe } from './use-me';
 
 const ROLE_LABEL: Record<WebRole, { en: string; mr: string }> = {
@@ -67,7 +68,9 @@ export function StaffShell({ role, children }: { role: WebRole; children: ReactN
             {t('signOut')}
           </button>
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">
+          <RoleProvider role={role}>{children}</RoleProvider>
+        </main>
       </div>
     </div>
   );

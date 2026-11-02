@@ -21,6 +21,36 @@ export const STAFF_ROUTES: readonly StaffRoute[] = [
     label: { en: 'Dashboard', mr: 'डॅशबोर्ड' },
     menu: true,
   },
+  {
+    path: '/attendance',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Attendance', mr: 'हजेरी' },
+    menu: true,
+  },
+  {
+    path: '/alerts',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Alerts', mr: 'सूचना' },
+    menu: true,
+  },
+  {
+    path: '/approvals',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Leave & corrections', mr: 'रजा व दुरुस्ती' },
+    menu: true,
+  },
+  {
+    path: '/tasks',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Tasks', mr: 'कामे' },
+    menu: true,
+  },
+  {
+    path: '/staff',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Staff', mr: 'कर्मचारी' },
+    menu: true,
+  },
 ];
 
 /** Pages anyone may open without signing in. */

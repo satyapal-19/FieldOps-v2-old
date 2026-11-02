@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .btn-primary {
+    @apply rounded-md bg-smkc px-3 py-2 text-sm font-medium text-white hover:bg-smkc-light disabled:opacity-60;
+  }
+  .btn-secondary {
+    @apply rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-100 disabled:opacity-50;
+  }
+  .btn-danger {
+    @apply rounded-md bg-red-700 px-3 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-60;
+  }
+}
