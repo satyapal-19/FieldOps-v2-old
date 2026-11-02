@@ -107,6 +107,22 @@ export function checkReportsTo(
   }
 }
 
+/**
+ * Whether changing a manager would break their direct reports' lines (see checkReportsTo):
+ * deactivating them, changing their role, or moving a ward inspector / inspector (whose reports
+ * must share their ward) to another ward. Returns what is wrong, or null when reports are safe.
+ */
+export function changeBreaksReports(
+  before: { role: StaffRole; homeWardId: string | null; isActive: boolean },
+  after: { role: StaffRole; homeWardId: string | null; isActive: boolean },
+): 'DEACTIVATED' | 'ROLE_CHANGED' | 'WARD_CHANGED' | null {
+  if (before.isActive && !after.isActive) return 'DEACTIVATED';
+  if (after.role !== before.role) return 'ROLE_CHANGED';
+  const reportsShareWard = before.role === Role.WARD_INSPECTOR || before.role === Role.INSPECTOR;
+  if (reportsShareWard && after.homeWardId !== before.homeWardId) return 'WARD_CHANGED';
+  return null;
+}
+
 /** Only web-dashboard roles sign in with a password; field roles use OTP (D3). */
 export function checkPasswordAllowed(role: StaffRole, hasPassword: boolean): void {
   if (hasPassword && !PASSWORD_LOGIN_ROLES.includes(role)) {

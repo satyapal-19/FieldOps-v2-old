@@ -55,6 +55,8 @@ class ErrorCode extends EnumClass {
   static const ErrorCode AUTH_WEAK_PASSWORD = _$AUTH_WEAK_PASSWORD;
   @BuiltValueEnumConst(wireName: r'STAFF_IDENTITY_TAKEN')
   static const ErrorCode STAFF_IDENTITY_TAKEN = _$STAFF_IDENTITY_TAKEN;
+  @BuiltValueEnumConst(wireName: r'STAFF_HAS_REPORTS')
+  static const ErrorCode STAFF_HAS_REPORTS = _$STAFF_HAS_REPORTS;
   @BuiltValueEnumConst(wireName: r'OFFICE_CODE_TAKEN')
   static const ErrorCode OFFICE_CODE_TAKEN = _$OFFICE_CODE_TAKEN;
   @BuiltValueEnumConst(wireName: r'ROSTER_WORKER_TAKEN')

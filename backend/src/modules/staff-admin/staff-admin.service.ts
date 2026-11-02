@@ -30,6 +30,7 @@ import type {
 import {
   canSeeFullPhone,
   canViewStaff,
+  changeBreaksReports,
   changesNeedSignOut,
   checkPasswordAllowed,
   checkReportsTo,
@@ -223,6 +224,24 @@ export class StaffAdminService {
       changes.homeWardId !== undefined ||
       changes.officeId !== undefined ||
       changes.reportsToId !== undefined;
+    // People below come first: their lines must move before this person can change.
+    const breaks = changeBreaksReports(
+      {
+        role: existing.role,
+        homeWardId: existing.homeWardId ?? null,
+        isActive: Boolean(Number(existing.isActive)),
+      },
+      after,
+    );
+    if (breaks) {
+      const reports = await this.staff.findIds({ reportsToId: id, isActive: true });
+      if (reports.length > 0) {
+        throw new AppError(ErrorCode.STAFF_HAS_REPORTS, undefined, {
+          reports: reports.length,
+          change: breaks,
+        });
+      }
+    }
     if (linksChanged) await this.checkLinks(after, { id, ...after }, reportsToId);
     // A role that loses web sign-in also loses its password.
     if (existing.passwordHash && changes.role !== undefined && !this.keepsPassword(after.role)) {

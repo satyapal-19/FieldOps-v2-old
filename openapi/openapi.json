@@ -6653,6 +6653,7 @@
           "AUTH_ACCOUNT_INACTIVE",
           "AUTH_WEAK_PASSWORD",
           "STAFF_IDENTITY_TAKEN",
+          "STAFF_HAS_REPORTS",
           "OFFICE_CODE_TAKEN",
           "ROSTER_WORKER_TAKEN",
           "ASSIGNMENT_EXISTS",

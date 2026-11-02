@@ -29,6 +29,7 @@ export enum ErrorCode {
 
   // Staff and offices
   STAFF_IDENTITY_TAKEN = 'STAFF_IDENTITY_TAKEN',
+  STAFF_HAS_REPORTS = 'STAFF_HAS_REPORTS',
   OFFICE_CODE_TAKEN = 'OFFICE_CODE_TAKEN',
 
   // Rosters and assignments
@@ -119,6 +120,10 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
   [ErrorCode.STAFF_IDENTITY_TAKEN]: {
     status: 409,
     title: 'Another staff member already has this phone or employee code',
+  },
+  [ErrorCode.STAFF_HAS_REPORTS]: {
+    status: 409,
+    title: 'People still report to this person; move them to another manager first',
   },
   [ErrorCode.OFFICE_CODE_TAKEN]: { status: 409, title: 'An office with this code already exists' },
 

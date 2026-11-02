@@ -239,12 +239,21 @@ describe('staff (e2e)', () => {
 
     it('looks up several ids in one call, within the caller scope', async () => {
       const both = `${workerId},${otherWardWorkerId}`;
-      const all = await http.get(`/api/v1/staff?ids=${both}`).set('Authorization', admin).expect(200);
+      const all = await http
+        .get(`/api/v1/staff?ids=${both}`)
+        .set('Authorization', admin)
+        .expect(200);
       expect(ids(all.body)).toEqual([workerId, otherWardWorkerId].sort());
       const wi = await bearerFor(http, 'S-WI-01');
-      const scoped = await http.get(`/api/v1/staff?ids=${both}`).set('Authorization', wi).expect(200);
+      const scoped = await http
+        .get(`/api/v1/staff?ids=${both}`)
+        .set('Authorization', wi)
+        .expect(200);
       expect(ids(scoped.body)).toEqual([workerId]);
-      const bad = await http.get('/api/v1/staff?ids=not-a-uuid').set('Authorization', admin).expect(400);
+      const bad = await http
+        .get('/api/v1/staff?ids=not-a-uuid')
+        .set('Authorization', admin)
+        .expect(400);
       expect(bad.body.code).toBe('VALIDATION_FAILED');
       const many = Array.from({ length: 101 }, () => workerId).join(',');
       await http.get(`/api/v1/staff?ids=${many}`).set('Authorization', admin).expect(400);
@@ -283,6 +292,34 @@ describe('staff (e2e)', () => {
         .send({ expectedVersion: 2, role: 'OFFICE_STAFF' })
         .expect(422);
       expect(res.body.code).toBe('RULE_VIOLATION');
+    });
+
+    it('refuses to deactivate or move a manager while people report to them', async () => {
+      const current = await http
+        .get(`/api/v1/staff/${inspectorId}`)
+        .set('Authorization', admin)
+        .expect(200);
+      const off = await http
+        .patch(`/api/v1/staff/${inspectorId}`)
+        .set('Authorization', admin)
+        .send({ expectedVersion: current.body.version, isActive: false })
+        .expect(409);
+      expect(off.body).toMatchObject({
+        code: 'STAFF_HAS_REPORTS',
+        details: { reports: 1, change: 'DEACTIVATED' },
+      });
+      const moved = await http
+        .patch(`/api/v1/staff/${inspectorId}`)
+        .set('Authorization', admin)
+        .send({ expectedVersion: current.body.version, homeWardId: ward2 })
+        .expect(409);
+      expect(moved.body.details.change).toBe('WARD_CHANGED');
+      // A change that keeps the reporting lines intact still works.
+      await http
+        .patch(`/api/v1/staff/${inspectorId}`)
+        .set('Authorization', admin)
+        .send({ expectedVersion: current.body.version, department: 'Sanitation' })
+        .expect(200);
     });
 
     it('deactivating signs the person out at once', async () => {

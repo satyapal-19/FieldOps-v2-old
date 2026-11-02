@@ -89,6 +89,10 @@
       "en": "Another staff member already has this phone or employee code",
       "mr": "हा फोन किंवा कर्मचारी कोड दुसऱ्या कर्मचाऱ्याकडे आधीच आहे"
     },
+    "STAFF_HAS_REPORTS": {
+      "en": "People still report to this person; move them to another manager first",
+      "mr": "या व्यक्तीकडे अजून कर्मचारी अहवाल देतात; आधी त्यांना दुसऱ्या वरिष्ठाकडे हलवा"
+    },
     "OFFICE_CODE_TAKEN": {
       "en": "An office with this code already exists",
       "mr": "या कोडचे कार्यालय आधीच आहे"

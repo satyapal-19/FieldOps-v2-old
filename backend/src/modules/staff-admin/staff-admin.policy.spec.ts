@@ -4,6 +4,7 @@ import { StaffRuleError } from '../staff/staff.policy';
 import {
   canSeeFullPhone,
   canViewStaff,
+  changeBreaksReports,
   changesNeedSignOut,
   checkPasswordAllowed,
   checkReportsTo,
@@ -153,6 +154,21 @@ describe('staff-admin.policy', () => {
       ['phone changed', { phone: '9812345679' }, true],
     ])('%s -> %s', (_label, change, expected) => {
       expect(changesNeedSignOut(before, { ...before, isActive: true, ...change })).toBe(expected);
+    });
+  });
+
+  describe('changeBreaksReports', () => {
+    const was = (role: StaffRole) => ({ role, homeWardId: 'w1', isActive: true });
+    it.each([
+      ['deactivating anyone', Role.ADMIN, { isActive: false }, 'DEACTIVATED'],
+      ['changing the role', Role.INSPECTOR, { role: Role.WARD_INSPECTOR }, 'ROLE_CHANGED'],
+      ['moving an inspector to another ward', Role.INSPECTOR, { homeWardId: 'w2' }, 'WARD_CHANGED'],
+      ['moving a ward inspector', Role.WARD_INSPECTOR, { homeWardId: 'w2' }, 'WARD_CHANGED'],
+      ["an admin's ward (reports need no ward)", Role.ADMIN, { homeWardId: 'w2' }, null],
+      ['a new phone or name', Role.INSPECTOR, {}, null],
+      ['re-activating', Role.INSPECTOR, { isActive: true }, null],
+    ] as const)('%s -> %s', (_label, role, change, expected) => {
+      expect(changeBreaksReports(was(role), { ...was(role), ...change })).toBe(expected);
     });
   });
 });
