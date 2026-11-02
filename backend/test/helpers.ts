@@ -11,6 +11,7 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { OtpMessage, OtpSender } from '../src/modules/auth/otp/otp-sender';
 import { Staff } from '../src/modules/staff/entities/staff.entity';
+import { Ward } from '../src/modules/wards/entities/ward.entity';
 import type { StaffRole } from '../src/shared/auth/roles';
 import { ENTITIES } from '../src/database/entities';
 import { randomUUID } from 'node:crypto';
@@ -98,6 +99,7 @@ export async function seedStaff(
     employeeCode: string;
     homeWardId?: string | null;
     officeId?: string | null;
+    reportsToId?: string | null;
     password?: string;
   },
 ): Promise<Staff> {
@@ -112,7 +114,7 @@ export async function seedStaff(
     role: fields.role,
     homeWardId: fields.homeWardId ?? null,
     officeId: fields.officeId ?? null,
-    reportsToId: null,
+    reportsToId: fields.reportsToId ?? null,
     department: null,
     shiftStart: '06:00',
     shiftEnd: '14:00',
@@ -126,6 +128,25 @@ export async function seedStaff(
   };
   await dataSource.getRepository(Staff).insert(staff);
   return staff;
+}
+
+/** Inserts an active ward directly (when the test is not about wards). Returns its id. */
+export async function insertWard(dataSource: DataSource, code: string): Promise<string> {
+  const now = new Date();
+  const ward: Ward = {
+    id: randomUUID(),
+    code,
+    name: `Ward ${code}`,
+    nameMr: `प्रभाग ${code}`,
+    zone: 'SANGLI',
+    boundaryGeojson: JSON.stringify(SQUARE_BOUNDARY),
+    isActive: true,
+    version: 1,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await dataSource.getRepository(Ward).insert(ward);
+  return ward.id;
 }
 
 /** Signs in through the dev/test-only endpoint and returns the bearer header value. */

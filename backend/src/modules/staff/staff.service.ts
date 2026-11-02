@@ -19,6 +19,10 @@ export class StaffService {
     return this.staff.findPage(filter, skip, take);
   }
 
+  findIds(filter: StaffListFilter): Promise<string[]> {
+    return this.staff.findIds(filter);
+  }
+
   findActiveIds(ids: readonly string[]): Promise<Set<string>> {
     return ids.length === 0 ? Promise.resolve(new Set()) : this.staff.findActiveIds(ids);
   }

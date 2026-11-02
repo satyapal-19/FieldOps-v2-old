@@ -14,6 +14,8 @@ export interface StaffListFilter {
   role?: StaffRole;
   wardId?: string;
   officeId?: string;
+  /** Direct reports of this manager. */
+  reportsToId?: string;
   isActive?: boolean;
   /** Matches employee code or name, case-insensitive. */
   search?: string;
@@ -61,11 +63,27 @@ export class StaffRepository {
     return active;
   }
 
+  /** Ids of everyone matching the filter (scopes such as "my ward" are a few hundred people). */
+  async findIds(filter: StaffListFilter): Promise<string[]> {
+    const rows = await this.filtered(filter).select('s.id', 'id').getRawMany<{ id: string }>();
+    return rows.map((r) => r.id);
+  }
+
   findPage(filter: StaffListFilter, skip: number, take: number): Promise<[Staff[], number]> {
+    return this.filtered(filter)
+      .orderBy('s.employeeCode', 'ASC')
+      .skip(skip)
+      .take(take)
+      .getManyAndCount();
+  }
+
+  private filtered(filter: StaffListFilter) {
     const qb = this.repo.createQueryBuilder('s');
     if (filter.role) qb.andWhere('s.role = :role', { role: filter.role });
     if (filter.wardId) qb.andWhere('s.homeWardId = :wardId', { wardId: filter.wardId });
     if (filter.officeId) qb.andWhere('s.officeId = :officeId', { officeId: filter.officeId });
+    if (filter.reportsToId)
+      qb.andWhere('s.reportsToId = :reportsToId', { reportsToId: filter.reportsToId });
     if (filter.isActive !== undefined)
       qb.andWhere('s.isActive = :isActive', { isActive: filter.isActive ? 1 : 0 });
     if (filter.search) {
@@ -94,7 +112,7 @@ export class StaffRepository {
         }),
       );
     }
-    return qb.orderBy('s.employeeCode', 'ASC').skip(skip).take(take).getManyAndCount();
+    return qb;
   }
 
   async insert(staff: Staff, tx?: EntityManager): Promise<void> {

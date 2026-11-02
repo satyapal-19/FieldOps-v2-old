@@ -37,6 +37,8 @@ export enum ErrorCode {
 
   // Calendar
   HOLIDAY_DATE_TAKEN = 'HOLIDAY_DATE_TAKEN',
+  LEAVE_OVERLAP = 'LEAVE_OVERLAP',
+  REGULARIZATION_EXISTS = 'REGULARIZATION_EXISTS',
 
   // Wards
   WARD_CODE_TAKEN = 'WARD_CODE_TAKEN',
@@ -116,6 +118,14 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
   },
 
   [ErrorCode.HOLIDAY_DATE_TAKEN]: { status: 409, title: 'There is already a holiday on this date' },
+  [ErrorCode.LEAVE_OVERLAP]: {
+    status: 409,
+    title: 'You already have pending or approved leave on these dates',
+  },
+  [ErrorCode.REGULARIZATION_EXISTS]: {
+    status: 409,
+    title: 'A regularization request for this day is already open or approved',
+  },
 
   [ErrorCode.WARD_CODE_TAKEN]: { status: 409, title: 'A ward with this code already exists' },
   [ErrorCode.INVALID_BOUNDARY]: { status: 422, title: 'The ward boundary is not a valid polygon' },
