@@ -39,7 +39,7 @@ Payroll and QR-checkpoint attendance are removed.
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 Foundations | Backend scaffold, shared kit, wards reference module, Next.js scaffold, Docker, CI | **Done — Gate G0 passed 31 Oct 2026** on the dev PC |
-| 1 Backend core | Portable schema, auth, RBAC, CRUD, audit, Swagger, seed | **In progress**: auth, offices, staff (no controller yet), audit, face interface + Aadhaar adapter done; **full portable schema done (1 Nov)**: rosters, assignments, shifts, attendance, pings, tamper events, spot checks, tasks + task updates, complaints, leave, regularization, holidays, alerts, chat — each with client UUIDs and version columns where needed. **Endpoints done**: `/staff` (admin CRUD, scoped reads), `/rosters/standing`, `/assignments` (+ `self`, `approve`, `generate`), `/shifts` (+ `effective`); sample seed (`npm run db:seed:dev`). Remaining for G1: CRUD for holidays / leave / tasks / complaints / alerts / chat, office-staff scope rules, Swagger review against the gate list |
+| 1 Backend core | Portable schema, auth, RBAC, CRUD, audit, Swagger, seed | **In progress**: auth, offices, staff (no controller yet), audit, face interface + Aadhaar adapter done; **full portable schema done (1 Nov)**: rosters, assignments, shifts, attendance, pings, tamper events, spot checks, tasks + task updates, complaints, leave, regularization, holidays, alerts, chat — each with client UUIDs and version columns where needed. **Endpoints done (2 Nov)**: `/staff`, `/rosters/standing`, `/assignments` (+ `self`, `approve`, `generate`), `/shifts` (+ `effective`), `/holidays`, `/leave`, `/regularizations`, `/tasks` (+ `updates`, `review`, `reassign`, `history`), `/complaints` + public `/public/complaints`, `/alerts`; sample seed. Swagger lists 68 operations; every non-public one requires a bearer token. Remaining: per-device rate limits (with device binding, D3). Chat endpoints are Phase 4 |
 | 2 Attendance engine | Policies, geo service, liveness challenge, face engine (benchmark first), punch, pings, jobs | Not started |
 | 3 Client migration | Web pages to Next.js, both apps to the API, Supabase removed | Not started |
 | 4 Extended features | Spot checks, co-presence, chat, voice, notifications, offline tiles, muster roll | Not started |
@@ -68,6 +68,7 @@ sustain 50 punches/s, p95 < 500 ms, zero duplicates · ~17M ping rows at 90 days
 | Map tiles | Own offline OSM tile pack served by our backend |
 | Backups | Scripts + schedule in the administrator manual |
 | TLS | Certificate supplied by SMKC; tested with self-signed |
+| Citizen accounts | None: citizens file and track complaints on the public portal with a tracking ID (no sign-in, stricter per-IP rate limit, no personal data in responses) |
 | Ward boundaries | SMKMC supplies official prabhag boundaries (GeoJSON or shapefile) before the pilot; until then the seed uses synthetic squares, loaded through `PATCH /wards/:id` when they arrive |
 
 ## Open items
