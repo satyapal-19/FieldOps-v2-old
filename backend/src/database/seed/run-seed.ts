@@ -14,7 +14,8 @@ async function run(): Promise<void> {
     const summary = await seedSampleData(app);
     process.stdout.write(`Sample data loaded:\n${JSON.stringify(summary, null, 2)}\n`);
     process.stdout.write(
-      'Sign in with POST /api/v1/auth/test-login {"identifier": "<employee code>"}\n',
+      'Sign in with POST /api/v1/auth/test-login {"identifier": "<employee code>"}; web roles use\n' +
+        'their employee code and SEED_WEB_PASSWORD on the dashboard when it is set.\n',
     );
   } finally {
     await app.close();

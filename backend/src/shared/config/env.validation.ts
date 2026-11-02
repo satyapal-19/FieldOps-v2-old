@@ -42,6 +42,7 @@ export interface Env {
   TRUST_PROXY: string;
   JOBS_ENABLED: boolean;
   PING_RETENTION_DAYS: number;
+  SEED_WEB_PASSWORD?: string;
 
   FACE_PROVIDER: FaceProvider;
   FACE_MATCH_THRESHOLD: number;
@@ -172,6 +173,14 @@ const schema = Joi.object<Env>({
   }),
   // Raw location pings are purged after this many days (SMKC policy); route summaries stay.
   PING_RETENTION_DAYS: Joi.number().integer().min(7).max(365).default(90),
+  // Development / test only: the sample seed gives the web roles this password.
+  SEED_WEB_PASSWORD: Joi.string().when('NODE_ENV', {
+    ...isProduction,
+    then: Joi.string().valid('').optional().messages({
+      'any.only': 'SEED_WEB_PASSWORD is not allowed in production',
+    }),
+    otherwise: Joi.string().allow('').min(10).max(72).optional(),
+  }),
 
   // Face verification: 'local' (AuraFace on our server) or 'aadhaar' (UIDAI via SMKC's ASA).
   FACE_PROVIDER: Joi.string().valid('local', 'aadhaar').default('local'),

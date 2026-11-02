@@ -1,8 +1,9 @@
 /**
  * Sample data for development, testing and the demo (deliverables 07 and 18).
  * Everything goes through the real services, so each row passes the same rules, repositories
- * and audit trail as an API call. No passwords are set: in development and test, sign in with
- * the test login (employee code, no OTP); production refuses to run the seed.
+ * and audit trail as an API call. Field roles sign in with the test login (employee code, no OTP);
+ * the web roles (admin, office staff, ward inspectors) get SEED_WEB_PASSWORD when it is set in the
+ * environment file, else no password. Production refuses to run the seed.
  *
  * Ward boundaries are synthetic squares around Sangli, NOT official limits: replace them with
  * SMKMC's GIS boundaries before the pilot.
@@ -70,6 +71,8 @@ export async function seedSampleData(app: INestApplicationContext): Promise<Seed
   const staffAdmin = app.get(StaffAdminService);
   const rosters = app.get(RostersService);
   const clock = app.get(Clock);
+  // Web sign-in roles get this password (development / test env file only; never in source).
+  const webPassword = config.seedWebPassword ? { initialPassword: config.seedWebPassword } : {};
 
   if ((await wards.list(1, 1)).total > 0) {
     throw new AlreadySeededError(
@@ -94,6 +97,7 @@ export async function seedSampleData(app: INestApplicationContext): Promise<Seed
     role: Role.ADMIN,
     shiftStart: '10:00',
     shiftEnd: '18:00',
+    ...webPassword,
   });
   const admin: AuthUser = { ...bootstrapActor, staffId: adminProfile.id, sessionId: 'seed' };
   let staffCount = 1;
@@ -127,6 +131,7 @@ export async function seedSampleData(app: INestApplicationContext): Promise<Seed
       department: 'Establishment',
       shiftStart: '10:00',
       shiftEnd: '18:00',
+      ...webPassword,
     });
     staffCount++;
   }
@@ -143,6 +148,7 @@ export async function seedSampleData(app: INestApplicationContext): Promise<Seed
       homeWardId: ward.id,
       reportsToId: admin.staffId,
       department: 'Sanitation',
+      ...webPassword,
     });
     staffCount++;
 

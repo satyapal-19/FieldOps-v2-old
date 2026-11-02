@@ -45,6 +45,11 @@ JOBS_ENABLED=true
 # How long raw location pings are kept (SMKC policy); daily route summaries stay.
 PING_RETENTION_DAYS=90
 
+# Sample seed only (npm run db:seed:dev): password for the web roles (admin, office staff,
+# ward inspectors), 10+ characters with letters and digits. Leave empty for no password.
+# Refused in production.
+SEED_WEB_PASSWORD=
+
 # Face verification: local (AuraFace on our server, default) or aadhaar (UIDAI via SMKC's ASA).
 FACE_PROVIDER=local
 FACE_MATCH_THRESHOLD=0.45

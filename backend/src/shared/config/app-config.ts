@@ -55,6 +55,11 @@ export class AppConfig {
     };
   }
 
+  /** Development / test only: password the sample seed sets for web sign-in roles. */
+  get seedWebPassword(): string | undefined {
+    return this.config.get('SEED_WEB_PASSWORD', { infer: true }) || undefined;
+  }
+
   get auth(): {
     accessSecret: string;
     refreshSecret: string;

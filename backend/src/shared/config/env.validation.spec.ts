@@ -97,6 +97,25 @@ describe('validateEnv', () => {
     );
   });
 
+  it('allows a seed web password only outside production', () => {
+    const pw = 'seed-pass-1234';
+    expect(validateEnv({ ...base, NODE_ENV: 'development', SEED_WEB_PASSWORD: pw }).SEED_WEB_PASSWORD).toBe(pw);
+    expect(validateEnv({ ...base, NODE_ENV: 'development', SEED_WEB_PASSWORD: '' }).SEED_WEB_PASSWORD).toBe('');
+    expect(() => validateEnv({ ...base, NODE_ENV: 'development', SEED_WEB_PASSWORD: 'short' })).toThrow(
+      /SEED_WEB_PASSWORD/,
+    );
+    expect(() =>
+      validateEnv({
+        ...base,
+        NODE_ENV: 'production',
+        CORS_ORIGINS: 'https://fieldops.example',
+        JWT_ACCESS_SECRET: strongSecret,
+        JWT_REFRESH_SECRET: strongSecret,
+        SEED_WEB_PASSWORD: pw,
+      }),
+    ).toThrow(/not allowed in production/);
+  });
+
   it('ignores unrelated environment variables', () => {
     const env = validateEnv({ ...base, NODE_ENV: 'test', PATH: '/usr/bin' }) as unknown as Record<string, unknown>;
     expect(env.PATH).toBeUndefined();
