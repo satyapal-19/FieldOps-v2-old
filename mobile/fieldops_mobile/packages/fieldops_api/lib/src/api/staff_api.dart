@@ -214,6 +214,7 @@ class StaffApi {
   /// * [officeId] 
   /// * [isActive] 
   /// * [q] - Part of an employee code or name
+  /// * [ids] - Comma-separated staff ids (up to 100), e.g. the names behind a page of records
   /// * [page] 
   /// * [pageSize] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -231,6 +232,7 @@ class StaffApi {
     String? officeId,
     bool? isActive,
     String? q,
+    String? ids,
     int? page = 1,
     int? pageSize = 20,
     CancelToken? cancelToken,
@@ -265,6 +267,7 @@ class StaffApi {
       if (officeId != null) r'officeId': encodeQueryParameter(_serializers, officeId, const FullType(String)),
       if (isActive != null) r'isActive': encodeQueryParameter(_serializers, isActive, const FullType(bool)),
       if (q != null) r'q': encodeQueryParameter(_serializers, q, const FullType(String)),
+      if (ids != null) r'ids': encodeQueryParameter(_serializers, ids, const FullType(String)),
       if (page != null) r'page': encodeQueryParameter(_serializers, page, const FullType(int)),
       if (pageSize != null) r'pageSize': encodeQueryParameter(_serializers, pageSize, const FullType(int)),
     };

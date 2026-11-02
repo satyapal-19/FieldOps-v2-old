@@ -81,6 +81,7 @@ export class StaffAdminService {
         officeId: query.officeId,
         isActive: query.isActive,
         search: query.q?.trim() || undefined,
+        ids: query.ids,
         visibleTo: scope.kind === 'WARD' ? scope : undefined,
       },
       (query.page - 1) * query.pageSize,

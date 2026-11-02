@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
   IsBoolean,
   IsIn,
   IsInt,
@@ -188,6 +191,20 @@ export class ListStaffQueryDto {
   @IsString()
   @Length(1, 50)
   q?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'Comma-separated staff ids (up to 100), e.g. the names behind a page of records',
+  })
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    typeof value === 'string' ? value.split(',').map((v) => v.trim()).filter(Boolean) : value,
+  )
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(100)
+  @IsUUID('all', { each: true })
+  ids?: string[];
 
   @ApiPropertyOptional({ type: 'integer', default: 1, minimum: 1 })
   @IsOptional()

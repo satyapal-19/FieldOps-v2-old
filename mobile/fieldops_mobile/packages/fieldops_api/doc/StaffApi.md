@@ -98,7 +98,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **staffAdminControllerList**
-> StaffPageDto staffAdminControllerList(role, wardId, officeId, isActive, q, page, pageSize)
+> StaffPageDto staffAdminControllerList(role, wardId, officeId, isActive, q, ids, page, pageSize)
 
 List staff in your scope (paged, by employee code)
 
@@ -112,11 +112,12 @@ final String wardId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String |
 final String officeId = 38400000-8cf0-11bd-b23e-10b96e4ef00d; // String | 
 final bool isActive = true; // bool | 
 final String q = q_example; // String | Part of an employee code or name
+final String ids = ids_example; // String | Comma-separated staff ids (up to 100), e.g. the names behind a page of records
 final int page = 56; // int | 
 final int pageSize = 56; // int | 
 
 try {
-    final response = api.staffAdminControllerList(role, wardId, officeId, isActive, q, page, pageSize);
+    final response = api.staffAdminControllerList(role, wardId, officeId, isActive, q, ids, page, pageSize);
     print(response);
 } catch on DioException (e) {
     print('Exception when calling StaffApi->staffAdminControllerList: $e\n');
@@ -132,6 +133,7 @@ Name | Type | Description  | Notes
  **officeId** | **String**|  | [optional] 
  **isActive** | **bool**|  | [optional] 
  **q** | **String**| Part of an employee code or name | [optional] 
+ **ids** | **String**| Comma-separated staff ids (up to 100), e.g. the names behind a page of records | [optional] 
  **page** | **int**|  | [optional] [default to 1]
  **pageSize** | **int**|  | [optional] [default to 20]
 

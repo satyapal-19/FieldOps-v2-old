@@ -237,6 +237,19 @@ describe('staff (e2e)', () => {
       await http.get(`/api/v1/staff/${wardInspectorId}`).set('Authorization', ins).expect(404);
     });
 
+    it('looks up several ids in one call, within the caller scope', async () => {
+      const both = `${workerId},${otherWardWorkerId}`;
+      const all = await http.get(`/api/v1/staff?ids=${both}`).set('Authorization', admin).expect(200);
+      expect(ids(all.body)).toEqual([workerId, otherWardWorkerId].sort());
+      const wi = await bearerFor(http, 'S-WI-01');
+      const scoped = await http.get(`/api/v1/staff?ids=${both}`).set('Authorization', wi).expect(200);
+      expect(ids(scoped.body)).toEqual([workerId]);
+      const bad = await http.get('/api/v1/staff?ids=not-a-uuid').set('Authorization', admin).expect(400);
+      expect(bad.body.code).toBe('VALIDATION_FAILED');
+      const many = Array.from({ length: 101 }, () => workerId).join(',');
+      await http.get(`/api/v1/staff?ids=${many}`).set('Authorization', admin).expect(400);
+    });
+
     it('a worker cannot list staff or read another worker, but can read themselves', async () => {
       const wk = await bearerFor(http, 'S-WK-01');
       const list = await http.get('/api/v1/staff').set('Authorization', wk).expect(403);

@@ -2866,6 +2866,8 @@ export interface operations {
                 isActive?: boolean;
                 /** @description Part of an employee code or name */
                 q?: string;
+                /** @description Comma-separated staff ids (up to 100), e.g. the names behind a page of records */
+                ids?: string;
                 page?: number;
                 pageSize?: number;
             };

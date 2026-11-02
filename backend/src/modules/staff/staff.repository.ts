@@ -19,6 +19,8 @@ export interface StaffListFilter {
   isActive?: boolean;
   /** Matches employee code or name, case-insensitive. */
   search?: string;
+  /** Only these ids (at most 100, so one IN list on Oracle). */
+  ids?: readonly string[];
   visibleTo?: { wardId: string; roles?: readonly StaffRole[]; alsoStaffId?: string };
 }
 
@@ -95,6 +97,7 @@ export class StaffRepository {
       qb.andWhere('s.reportsToId = :reportsToId', { reportsToId: filter.reportsToId });
     if (filter.isActive !== undefined)
       qb.andWhere('s.isActive = :isActive', { isActive: filter.isActive ? 1 : 0 });
+    if (filter.ids) qb.andWhere('s.id IN (:...ids)', { ids: [...filter.ids] });
     if (filter.search) {
       qb.andWhere(
         new Brackets((w) =>
