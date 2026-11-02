@@ -111,6 +111,11 @@ export class LeaveService {
     return (await this.repo.findApprovedLeaveOn(staffId, date)) !== null;
   }
 
+  /** For the daily ward summary: everyone on approved leave on an IST date. */
+  staffOnLeave(date: string): Promise<Set<string>> {
+    return this.repo.findStaffOnLeave(date);
+  }
+
   // ------------------------------------------------------------ Leave
 
   async listLeave(actor: AuthUser, q: ListRequestsQueryDto): Promise<LeavePageDto> {

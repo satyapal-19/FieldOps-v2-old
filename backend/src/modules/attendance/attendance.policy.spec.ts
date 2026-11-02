@@ -22,6 +22,8 @@ import {
   punchMode,
   punchPlace,
   PunchSubject,
+  routeAccess,
+  RouteSubject,
   statusAtCheckout,
   tamperSeverity,
   workedMinutes,
@@ -507,5 +509,56 @@ describe('logForPing and tamperSeverity', () => {
     ['SILENT_GAP', 'MEDIUM'],
   ] as const)('%s -> %s', (type, expected) => {
     expect(tamperSeverity(type)).toBe(expected);
+  });
+});
+
+describe('routeAccess', () => {
+  const person = (fields: Partial<RouteSubject> = {}): RouteSubject => ({
+    id: 'sub',
+    reportsToId: 'me',
+    homeWardId: 'w1',
+    dayWardId: null,
+    ...fields,
+  });
+  const today = '2026-11-02';
+
+  it.each([
+    ['admin: anyone, any day', Role.ADMIN, person({ homeWardId: 'w9' }), '2026-10-01', 'ALLOWED'],
+    ['ward inspector: home ward', Role.WARD_INSPECTOR, person(), today, 'ALLOWED'],
+    [
+      'ward inspector: placed in the ward that day',
+      Role.WARD_INSPECTOR,
+      person({ homeWardId: 'w9', dayWardId: 'w1' }),
+      today,
+      'ALLOWED',
+    ],
+    [
+      'ward inspector: placed elsewhere that day',
+      Role.WARD_INSPECTOR,
+      person({ dayWardId: 'w9' }),
+      today,
+      'HIDDEN',
+    ],
+    ['inspector: own report, any day', Role.INSPECTOR, person(), '2026-10-01', 'ALLOWED'],
+    ['inspector: another team', Role.INSPECTOR, person({ reportsToId: 'other' }), today, 'HIDDEN'],
+    ['worker: own route today', Role.WORKER, person({ id: 'me' }), today, 'ALLOWED'],
+    [
+      'worker: own night shift from yesterday',
+      Role.WORKER,
+      person({ id: 'me' }),
+      '2026-11-01',
+      'ALLOWED',
+    ],
+    [
+      'worker: own route last week',
+      Role.WORKER,
+      person({ id: 'me' }),
+      '2026-10-26',
+      'DATE_NOT_ALLOWED',
+    ],
+    ['worker: a colleague', Role.WORKER, person(), today, 'HIDDEN'],
+    ['office staff: own route today', Role.OFFICE_STAFF, person({ id: 'me' }), today, 'ALLOWED'],
+  ] as const)('%s', (_case, role, subject, date, expected) => {
+    expect(routeAccess(user(role), subject, date, today)).toBe(expected);
   });
 });

@@ -94,6 +94,18 @@ export class LeaveRepository {
       .getOne();
   }
 
+  /** Everyone on approved leave on an IST date. */
+  async findStaffOnLeave(date: string): Promise<Set<string>> {
+    const rows = await this.leave
+      .createQueryBuilder('l')
+      .select('l.staffId', 'staffId')
+      .where('l.status = :approved', { approved: 'APPROVED' })
+      .andWhere('l.fromDate <= :date', { date })
+      .andWhere('l.toDate >= :date', { date })
+      .getRawMany<{ staffId: string }>();
+    return new Set(rows.map((r) => r.staffId));
+  }
+
   findLeavePage(
     filter: RequestFilter,
     skip: number,

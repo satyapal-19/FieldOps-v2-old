@@ -40,6 +40,8 @@ export interface Env {
   RATE_LIMIT_PER_MINUTE: number;
   SIGN_IN_RATE_LIMIT_PER_MINUTE: number;
   TRUST_PROXY: string;
+  JOBS_ENABLED: boolean;
+  PING_RETENTION_DAYS: number;
 
   FACE_PROVIDER: FaceProvider;
   FACE_MATCH_THRESHOLD: number;
@@ -161,6 +163,15 @@ const schema = Joi.object<Env>({
     .when('NODE_ENV', { is: 'test', then: Joi.number().default(100000), otherwise: Joi.number().default(30) }),
   // Behind IIS / a reverse proxy set to the number of proxy hops (e.g. 1), so client IPs are real.
   TRUST_PROXY: Joi.string().pattern(/^(false|true|\d{1,2})$/).default('false'),
+
+  // Scheduled jobs. Tests run them directly with a frozen clock, so they are off there.
+  JOBS_ENABLED: Joi.boolean().when('NODE_ENV', {
+    is: 'test',
+    then: Joi.boolean().default(false),
+    otherwise: Joi.boolean().default(true),
+  }),
+  // Raw location pings are purged after this many days (SMKC policy); route summaries stay.
+  PING_RETENTION_DAYS: Joi.number().integer().min(7).max(365).default(90),
 
   // Face verification: 'local' (AuraFace on our server) or 'aadhaar' (UIDAI via SMKC's ASA).
   FACE_PROVIDER: Joi.string().valid('local', 'aadhaar').default('local'),

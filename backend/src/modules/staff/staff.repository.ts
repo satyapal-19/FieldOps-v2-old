@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, EntityManager, Repository } from 'typeorm';
+import { Brackets, EntityManager, In, Repository } from 'typeorm';
 import type { StaffRole } from '../../shared/auth/roles';
 import { isUniqueViolation } from '../../shared/database/db-errors';
 import { AppError } from '../../shared/errors/app-error';
@@ -61,6 +61,15 @@ export class StaffRepository {
       rows.forEach((r) => active.add(r.id));
     }
     return active;
+  }
+
+  /** Several people at once (IN-lists in chunks of 1000 for Oracle). */
+  async findByIds(ids: readonly string[]): Promise<Staff[]> {
+    const rows: Staff[] = [];
+    for (let i = 0; i < ids.length; i += 1000) {
+      rows.push(...(await this.repo.find({ where: { id: In(ids.slice(i, i + 1000)) } })));
+    }
+    return rows;
   }
 
   /** Ids of everyone matching the filter (scopes such as "my ward" are a few hundred people). */

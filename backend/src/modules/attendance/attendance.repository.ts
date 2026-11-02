@@ -1,6 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, EntityManager, In, IsNull, MoreThan, Repository } from 'typeorm';
+import {
+  Brackets,
+  EntityManager,
+  In,
+  IsNull,
+  LessThan,
+  LessThanOrEqual,
+  MoreThan,
+  Not,
+  Repository,
+} from 'typeorm';
 import type { AttendanceStatus } from './attendance-types';
 import { AttendanceLog } from './entities/attendance-log.entity';
 import { LivenessChallenge } from './entities/liveness-challenge.entity';
@@ -86,6 +96,31 @@ export class AttendanceRepository {
       .getManyAndCount();
   }
 
+  /** Shifts checked in and never checked out, on or before an IST date (auto-checkout, gaps). */
+  findOpen(upToDate: string): Promise<AttendanceLog[]> {
+    return this.logs.find({
+      where: {
+        checkinAt: Not(IsNull()),
+        checkoutAt: IsNull(),
+        attendanceDate: LessThanOrEqual(upToDate),
+      },
+    });
+  }
+
+  /** All logs of one IST date (the daily ward summary). */
+  findForDate(date: string): Promise<AttendanceLog[]> {
+    return this.logs.find({ where: { attendanceDate: date } });
+  }
+
+  /** Several logs at once (IN-lists in chunks of 1000 for Oracle). */
+  async findByIds(ids: readonly string[]): Promise<AttendanceLog[]> {
+    const rows: AttendanceLog[] = [];
+    for (let i = 0; i < ids.length; i += 1000) {
+      rows.push(...(await this.logs.find({ where: { id: In(ids.slice(i, i + 1000)) } })));
+    }
+    return rows;
+  }
+
   async insert(row: AttendanceLog, tx: EntityManager): Promise<void> {
     await this.lr(tx).insert(row);
   }
@@ -137,6 +172,12 @@ export class AttendanceRepository {
       { id, usedAt: IsNull(), expiresAt: MoreThan(at) },
       { usedAt: at },
     );
+    return result.affected ?? 0;
+  }
+
+  /** Purges challenges that expired before the cut-off, used or not. Returns rows deleted. */
+  async deleteChallengesBefore(cutoff: Date): Promise<number> {
+    const result = await this.challenges.delete({ expiresAt: LessThan(cutoff) });
     return result.affected ?? 0;
   }
 }

@@ -19,6 +19,10 @@ export class StaffService {
     return this.staff.findPage(filter, skip, take);
   }
 
+  findByIds(ids: readonly string[]): Promise<Staff[]> {
+    return this.staff.findByIds(ids);
+  }
+
   findIds(filter: StaffListFilter): Promise<string[]> {
     return this.staff.findIds(filter);
   }

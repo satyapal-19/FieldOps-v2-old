@@ -35,6 +35,13 @@ RATE_LIMIT_PER_MINUTE=100000
 SIGN_IN_RATE_LIMIT_PER_MINUTE=100000
 TRUST_PROXY=false
 
+# Scheduled jobs: auto-checkout, silent-gap detection, nightly roll-ups, retention purge.
+# Safe on every PM2 instance: a database lock makes each run happen once. Off in tests,
+# which call the jobs directly with a frozen clock.
+JOBS_ENABLED=false
+# How long raw location pings are kept (SMKC policy); daily route summaries stay.
+PING_RETENTION_DAYS=90
+
 # Face verification: local (AuraFace on our server, default) or aadhaar (UIDAI via SMKC's ASA).
 FACE_PROVIDER=local
 FACE_MATCH_THRESHOLD=0.45

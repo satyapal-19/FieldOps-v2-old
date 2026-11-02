@@ -87,6 +87,16 @@ describe('validateEnv', () => {
     ).toThrow(/must contain/);
   });
 
+  it('runs jobs everywhere but in tests and keeps pings 90 days by default', () => {
+    expect(validateEnv({ ...base, NODE_ENV: 'development' }).JOBS_ENABLED).toBe(true);
+    expect(validateEnv({ ...base, NODE_ENV: 'test' }).JOBS_ENABLED).toBe(false);
+    expect(validateEnv({ ...base, NODE_ENV: 'test', JOBS_ENABLED: 'true' }).JOBS_ENABLED).toBe(true);
+    expect(validateEnv({ ...base, NODE_ENV: 'development' }).PING_RETENTION_DAYS).toBe(90);
+    expect(() => validateEnv({ ...base, NODE_ENV: 'development', PING_RETENTION_DAYS: '3' })).toThrow(
+      /PING_RETENTION_DAYS/,
+    );
+  });
+
   it('ignores unrelated environment variables', () => {
     const env = validateEnv({ ...base, NODE_ENV: 'test', PATH: '/usr/bin' }) as unknown as Record<string, unknown>;
     expect(env.PATH).toBeUndefined();

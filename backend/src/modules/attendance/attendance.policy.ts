@@ -7,6 +7,7 @@
  */
 import type { AuthUser } from '../../shared/auth/auth-user';
 import { outranks, Role, StaffRole } from '../../shared/auth/roles';
+import { addDays } from '../../shared/clock/ist';
 import { AppError } from '../../shared/errors/app-error';
 import { ErrorCode } from '../../shared/errors/error-codes';
 import type { EffectiveShift } from '../shifts/shifts.policy';
@@ -342,6 +343,46 @@ export function attendanceScope(actor: AuthUser): AttendanceScope {
     return { kind: 'TEAM', managerId: actor.staffId, selfId: actor.staffId };
   }
   return { kind: 'SELF', staffId: actor.staffId };
+}
+
+/** The facts that decide who may see a person's route on a day. */
+export interface RouteSubject {
+  id: string;
+  reportsToId: string | null;
+  homeWardId: string | null;
+  /** The ward of that day's attendance, if any (a worker may be placed outside their home ward). */
+  dayWardId: string | null;
+}
+
+export type RouteAccess = 'ALLOWED' | 'HIDDEN' | 'DATE_NOT_ALLOWED';
+
+/**
+ * Route history follows the attendance read scope (action plan Phase 2): ADMIN anyone, a ward
+ * inspector anyone who worked in their ward that day, an inspector their reports. Everyone
+ * else sees only their own route, and only for today's shift (yesterday's too, for a night
+ * shift that began then). HIDDEN is answered as not found, so ids cannot be probed.
+ */
+export function routeAccess(
+  actor: AuthUser,
+  subject: RouteSubject,
+  date: string,
+  today: string,
+): RouteAccess {
+  const self = subject.id === actor.staffId;
+  const scope = attendanceScope(actor);
+  switch (scope.kind) {
+    case 'ALL':
+      return 'ALLOWED';
+    case 'WARD':
+      return self || (subject.dayWardId ?? subject.homeWardId) === scope.wardId
+        ? 'ALLOWED'
+        : 'HIDDEN';
+    case 'TEAM':
+      return self || subject.reportsToId === scope.managerId ? 'ALLOWED' : 'HIDDEN';
+    case 'SELF':
+      if (!self) return 'HIDDEN';
+      return date === today || date === addDays(today, -1) ? 'ALLOWED' : 'DATE_NOT_ALLOWED';
+  }
 }
 
 /** The shift a ping belongs to: the log whose check-in..check-out window contains it. */

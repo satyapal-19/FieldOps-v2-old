@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FaceModule } from './modules/face/face.module';
@@ -18,6 +19,7 @@ import { WardsModule } from './modules/wards/wards.module';
 import { AuditModule } from './shared/audit/audit.module';
 import { RequestContextInterceptor } from './shared/context/request-context';
 import { DatabaseModule } from './shared/database/database.module';
+import { JobsModule } from './shared/jobs/jobs.module';
 import { LoggingModule } from './shared/logging/logging.module';
 import { SharedModule } from './shared/shared.module';
 
@@ -27,6 +29,9 @@ import { SharedModule } from './shared/shared.module';
     LoggingModule,
     DatabaseModule,
     AuditModule,
+    // Cron timers on every instance; JobsModule's database lock runs each slot once.
+    ScheduleModule.forRoot(),
+    JobsModule,
     HealthModule,
     // AuthModule registers the global guards: every endpoint needs a token unless @Public().
     AuthModule,

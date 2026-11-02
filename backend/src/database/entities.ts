@@ -22,6 +22,9 @@ import { TaskUpdate } from '../modules/tasks/entities/task-update.entity';
 import { Task } from '../modules/tasks/entities/task.entity';
 import { Ward } from '../modules/wards/entities/ward.entity';
 import { AuditLog } from '../shared/audit/audit-log.entity';
+import { RouteSummary } from '../modules/attendance/entities/route-summary.entity';
+import { WardDailySummary } from '../modules/attendance/entities/ward-daily-summary.entity';
+import { JobLock } from '../shared/jobs/job-lock.entity';
 
 /** Every TypeORM entity. Add new entities here when a module adds one. */
 export const ENTITIES = [
@@ -38,6 +41,8 @@ export const ENTITIES = [
   LivenessChallenge,
   LocationPing,
   TamperEvent,
+  RouteSummary,
+  WardDailySummary,
   SpotCheck,
   CitizenComplaint,
   Task,
@@ -49,4 +54,5 @@ export const ENTITIES = [
   Conversation,
   ConversationParticipant,
   Message,
+  JobLock,
 ];

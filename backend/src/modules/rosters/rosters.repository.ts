@@ -97,6 +97,14 @@ export class RostersRepository {
     return this.ar(tx).findOne({ where: { shiftDate: date, staffId } });
   }
 
+  /** Approved placements of an IST date (for the daily ward summary). */
+  findApprovedOn(date: string): Promise<DailyAssignment[]> {
+    return this.ar().find({
+      where: { shiftDate: date, isApproved: true },
+      select: { id: true, staffId: true, wardId: true },
+    });
+  }
+
   findByClientUuid(clientUuid: string): Promise<DailyAssignment | null> {
     return this.assignments.findOne({ where: { clientUuid } });
   }

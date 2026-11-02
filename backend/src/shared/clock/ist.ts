@@ -29,3 +29,13 @@ export function istWallClockToUtc(date: string, time: string): Date {
   }
   return result;
 }
+
+/** A calendar date `days` later (or earlier when negative), as YYYY-MM-DD. */
+export function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T00:00:00Z`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(d.getTime())) {
+    throw new Error(`Invalid date: ${date}`);
+  }
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}

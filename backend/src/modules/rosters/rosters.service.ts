@@ -488,6 +488,14 @@ export class RostersService {
     return this.repo.findAssignmentFor(date, staffId);
   }
 
+  /** Who is approved to work where on an IST date (for the daily ward summary). */
+  async approvedPlacements(date: string): Promise<{ staffId: string; wardId: string }[]> {
+    return (await this.repo.findApprovedOn(date)).map((a) => ({
+      staffId: a.staffId,
+      wardId: a.wardId,
+    }));
+  }
+
   private async person(id: string): Promise<Staff> {
     const s = await this.staff.findById(id);
     if (!s) throw new AppError(ErrorCode.RULE_VIOLATION, 'Staff member not found', { id });
