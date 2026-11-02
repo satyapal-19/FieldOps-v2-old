@@ -5,6 +5,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { FaceModule } from './modules/face/face.module';
 import { HolidaysModule } from './modules/holidays/holidays.module';
 import { LeaveModule } from './modules/leave/leave.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 import { OfficesModule } from './modules/offices/offices.module';
 import { RostersModule } from './modules/rosters/rosters.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
@@ -35,6 +36,7 @@ import { SharedModule } from './shared/shared.module';
     ShiftsModule,
     HolidaysModule,
     LeaveModule,
+    TasksModule,
     FaceModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor }],
