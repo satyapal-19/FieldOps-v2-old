@@ -181,7 +181,7 @@ export class ComplaintsService {
       const task = await this.tasks.create(
         actor,
         {
-          title: `Complaint ${row.trackingId}: ${row.category.replace('_', ' ').toLowerCase()}`,
+          title: `Complaint ${row.trackingId}: ${row.category.replace(/_/g, ' ').toLowerCase()}`,
           description: row.description,
           priority: dto.priority,
           assignedToId: dto.assignedToId,
