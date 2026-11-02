@@ -14,7 +14,12 @@ import type {
   WardPageDto,
 } from './dto/ward.dto';
 import { Ward } from './entities/ward.entity';
-import { checkLocationInWard, normalizeWardCode, parseWardBoundary } from './wards.policy';
+import {
+  checkLocationInWard,
+  GeoPoint,
+  normalizeWardCode,
+  parseWardBoundary,
+} from './wards.policy';
 import { WardChanges, WardsRepository } from './wards.repository';
 
 export function toWardDto(ward: Ward): WardDto {
@@ -51,6 +56,21 @@ export class WardsService {
 
   async get(id: string): Promise<WardDto> {
     return toWardDto(await this.findOrThrow(id));
+  }
+
+  /**
+   * The active ward containing a point (strictly inside first, else within the 25 m edge
+   * allowance), or null. SMKMC has about 20 wards, so a scan is cheap.
+   */
+  async locate(point: GeoPoint): Promise<{ id: string; code: string } | null> {
+    const [wards] = await this.wards.findPage(0, 1000);
+    const active = wards.filter((w) => Boolean(Number(w.isActive)));
+    const checks = active.map((w) => ({
+      w,
+      c: checkLocationInWard(parseWardBoundary(w.boundaryGeojson), point),
+    }));
+    const hit = checks.find((x) => x.c.inside) ?? checks.find((x) => x.c.withinTolerance);
+    return hit ? { id: hit.w.id, code: hit.w.code } : null;
   }
 
   /** For other modules (staff links, rosters): does an active ward with this id exist? */

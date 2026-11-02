@@ -131,7 +131,11 @@ export async function seedStaff(
 }
 
 /** Inserts an active ward directly (when the test is not about wards). Returns its id. */
-export async function insertWard(dataSource: DataSource, code: string): Promise<string> {
+export async function insertWard(
+  dataSource: DataSource,
+  code: string,
+  boundary: object = SQUARE_BOUNDARY,
+): Promise<string> {
   const now = new Date();
   const ward: Ward = {
     id: randomUUID(),
@@ -139,7 +143,7 @@ export async function insertWard(dataSource: DataSource, code: string): Promise<
     name: `Ward ${code}`,
     nameMr: `प्रभाग ${code}`,
     zone: 'SANGLI',
-    boundaryGeojson: JSON.stringify(SQUARE_BOUNDARY),
+    boundaryGeojson: JSON.stringify(boundary),
     isActive: true,
     version: 1,
     createdAt: now,

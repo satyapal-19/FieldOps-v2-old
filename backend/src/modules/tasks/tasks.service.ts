@@ -159,7 +159,12 @@ export class TasksService {
     return (await this.repo.findByComplaint(complaintId)).map(toTaskDto);
   }
 
-  async create(actor: AuthUser, dto: CreateTaskDto, origin: TaskOrigin = {}): Promise<TaskDto> {
+  async create(
+    actor: AuthUser,
+    dto: CreateTaskDto,
+    origin: TaskOrigin = {},
+    tx?: EntityManager,
+  ): Promise<TaskDto> {
     const assignee = await this.person(dto.assignedToId, 'assignedToId');
     rule(() => checkCanAssign(actor, facts(assignee)));
     const dueAt = dto.dueAt ? new Date(dto.dueAt) : null;
@@ -196,9 +201,9 @@ export class TasksService {
       createdAt: now,
       updatedAt: now,
     };
-    await this.uow.run(async (tx) => {
-      await this.repo.insertTask(task, tx);
-      await this.audit.write(tx, {
+    const work = async (t: EntityManager) => {
+      await this.repo.insertTask(task, t);
+      await this.audit.write(t, {
         action: 'TASK_CREATED',
         entityType: 'task',
         entityId: task.id,
@@ -208,7 +213,9 @@ export class TasksService {
           complaintId: task.complaintId,
         },
       });
-    });
+    };
+    // Inside the caller's transaction when given (a complaint and its task commit together).
+    await (tx ? work(tx) : this.uow.run(work));
     return toTaskDto(task);
   }
 
