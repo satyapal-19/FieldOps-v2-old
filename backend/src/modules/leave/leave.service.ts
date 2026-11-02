@@ -111,6 +111,11 @@ export class LeaveService {
     return (await this.repo.findApprovedLeaveOn(staffId, date)) !== null;
   }
 
+  /** For the day-close job: approved corrections of attendance dates in [from, to]. */
+  approvedRegularizations(from: string, to: string): Promise<{ staffId: string; attendanceDate: string }[]> {
+    return this.repo.findApprovedRegularizations(from, to);
+  }
+
   /** For the daily ward summary: everyone on approved leave on an IST date. */
   staffOnLeave(date: string): Promise<Set<string>> {
     return this.repo.findStaffOnLeave(date);

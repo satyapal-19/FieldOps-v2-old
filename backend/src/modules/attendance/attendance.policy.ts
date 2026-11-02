@@ -352,13 +352,16 @@ export interface RouteSubject {
   homeWardId: string | null;
   /** The ward of that day's attendance, if any (a worker may be placed outside their home ward). */
   dayWardId: string | null;
+  /** The inspector that day's assignment placed them under (may differ from reportsToId). */
+  dayInspectorId: string | null;
 }
 
 export type RouteAccess = 'ALLOWED' | 'HIDDEN' | 'DATE_NOT_ALLOWED';
 
 /**
  * Route history follows the attendance read scope (action plan Phase 2): ADMIN anyone, a ward
- * inspector anyone who worked in their ward that day, an inspector their reports. Everyone
+ * inspector anyone who worked in their ward that day, an inspector their reports and anyone
+ * placed under them that day. Everyone
  * else sees only their own route, and only for today's shift (yesterday's too, for a night
  * shift that began then). HIDDEN is answered as not found, so ids cannot be probed.
  */
@@ -378,7 +381,11 @@ export function routeAccess(
         ? 'ALLOWED'
         : 'HIDDEN';
     case 'TEAM':
-      return self || subject.reportsToId === scope.managerId ? 'ALLOWED' : 'HIDDEN';
+      return self ||
+        subject.reportsToId === scope.managerId ||
+        subject.dayInspectorId === scope.managerId
+        ? 'ALLOWED'
+        : 'HIDDEN';
     case 'SELF':
       if (!self) return 'HIDDEN';
       return date === today || date === addDays(today, -1) ? 'ALLOWED' : 'DATE_NOT_ALLOWED';
@@ -393,6 +400,18 @@ export function logForPing<T extends OpenLog>(logs: T[], recordedAt: Date): T | 
         l.checkinAt && recordedAt >= l.checkinAt && (!l.checkoutAt || recordedAt <= l.checkoutAt),
     ) ?? null
   );
+}
+
+/**
+ * The ward an alert about a phone signal belongs to: the ward of the shift running at that
+ * moment (a worker placed in another ward alerts that ward's inspector), else the home ward.
+ */
+export function alertWardAt<T extends OpenLog & { wardId: string | null }>(
+  logs: T[],
+  at: Date,
+  homeWardId: string | null,
+): string | undefined {
+  return logForPing(logs, at)?.wardId ?? homeWardId ?? undefined;
 }
 
 // ------------------------------------------------------------------ Tamper events

@@ -9,7 +9,13 @@ import { AlertsService, RaiseAlert } from '../alerts/alerts.service';
 import { StaffService } from '../staff/staff.service';
 import type { GeoPoint, LocationCheck } from '../wards/wards.policy';
 import { WardsService } from '../wards/wards.service';
-import { isOutOfZone, logForPing, pingTimeAcceptable, tamperSeverity } from './attendance.policy';
+import {
+  alertWardAt,
+  isOutOfZone,
+  logForPing,
+  pingTimeAcceptable,
+  tamperSeverity,
+} from './attendance.policy';
 import { AttendanceRepository } from './attendance.repository';
 import type {
   PingBatchDto,
@@ -119,14 +125,16 @@ export class TrackingService {
     duplicates += rows.length - accepted;
 
     await this.checkOutOfZone(actor.staffId, logs, rows, previous);
-    if (rows.some((r) => r.isMocked)) {
+    const mocked = rows.find((r) => r.isMocked);
+    if (mocked) {
       await this.raise({
         alertType: 'TAMPER_DETECTED',
         severity: 'HIGH',
         message: 'Location pings report a mock location',
         messageMr: 'लोकेशन पिंगमध्ये बनावट लोकेशन',
         staffId: actor.staffId,
-        wardId: actor.homeWardId ?? undefined,
+        // The ward they work in that day (its inspector acts), else their home ward.
+        wardId: alertWardAt(logs, mocked.recordedAt, actor.homeWardId),
         details: { signal: 'MOCK_LOCATION', source: 'PING' },
         dedupeKey: dedupeKey('TAMPER_DETECTED', actor.staffId, `${istDate(now)}:MOCK`),
       });
@@ -139,6 +147,13 @@ export class TrackingService {
     const rejected: RejectedItemDto[] = [];
     let accepted = 0;
     let duplicates = 0;
+    const dates = new Set<string>();
+    for (const e of dto.events) {
+      const d = istDate(new Date(e.startedAt));
+      dates.add(d);
+      dates.add(previousDay(d));
+    }
+    const logs = await this.attendance.findForDates(actor.staffId, [...dates]);
     for (const e of dto.events) {
       const startedAt = new Date(e.startedAt);
       const resolvedAt = e.resolvedAt ? new Date(e.resolvedAt) : null;
@@ -183,7 +198,7 @@ export class TrackingService {
         message: `Phone reported ${e.eventType.replace(/_/g, ' ').toLowerCase()}`,
         messageMr: `फोनवर छेडछाड: ${e.eventType}`,
         staffId: actor.staffId,
-        wardId: actor.homeWardId ?? undefined,
+        wardId: alertWardAt(logs, startedAt, actor.homeWardId),
         details: {
           tamperEventId: row.id,
           eventType: e.eventType,

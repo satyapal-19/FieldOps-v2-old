@@ -186,6 +186,9 @@ describe('attendance jobs and route history (e2e)', () => {
         .getRepository(JobLock)
         .findOneByOrFail({ jobName: 'test-job' });
       expect(row).toMatchObject({ lastStatus: 'FAILED', lastResult: 'boom', lockedBy: null });
+      // The failed slot is retried by the next firing; once it succeeds it does not run again.
+      expect((await runner.run('test-job', 'slot-3', 5, async () => 'ok')).ran).toBe(true);
+      expect((await runner.run('test-job', 'slot-3', 5, async () => 'again')).ran).toBe(false);
       expect((await runner.run('test-job', 'slot-4', 5, async () => 'ok')).ran).toBe(true);
     });
 

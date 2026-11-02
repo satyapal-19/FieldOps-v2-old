@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, EntityManager, Repository } from 'typeorm';
+import { Between, EntityManager, In, Repository } from 'typeorm';
 import { Shift } from './entities/shift.entity';
 
 export type ShiftChanges = Partial<
@@ -22,6 +22,19 @@ export class ShiftsRepository {
 
   findFor(staffId: string, date: string, tx?: EntityManager): Promise<Shift | null> {
     return this.r(tx).findOne({ where: { staffId, shiftDate: date } });
+  }
+
+  /** Overrides of many people on one IST date (chunks of 1000 for Oracle's IN limit). */
+  async findForMany(staffIds: readonly string[], date: string): Promise<Shift[]> {
+    const rows: Shift[] = [];
+    for (let i = 0; i < staffIds.length; i += 1000) {
+      rows.push(
+        ...(await this.repo.find({
+          where: { staffId: In(staffIds.slice(i, i + 1000)), shiftDate: date },
+        })),
+      );
+    }
+    return rows;
   }
 
   findRange(staffId: string, from: string, to: string): Promise<Shift[]> {

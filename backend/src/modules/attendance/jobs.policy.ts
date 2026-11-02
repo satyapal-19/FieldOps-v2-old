@@ -210,6 +210,61 @@ export function wardDayCounts(
   };
 }
 
+// ------------------------------------------------------------------ Day close
+
+/** Approved leave turns an ABSENT day back into ON_LEAVE this far back (leave can be late). */
+export const LEAVE_RECONCILE_DAYS = 31;
+/** Regularization covers the last 7 days; look one more back for a request made at midnight. */
+export const REGULARIZATION_RECONCILE_DAYS = 8;
+
+/** The IST dates the day-close job looks at: the day before yesterday (night shifts) to today. */
+export function dayCloseDates(now: Date): string[] {
+  const today = istDate(now);
+  return [addDays(today, -2), addDays(today, -1), today];
+}
+
+/** Office staff are off on Sundays (SMKMC office calendar, a working assumption). */
+export function isWeeklyOff(date: string): boolean {
+  return new Date(`${date}T00:00:00Z`).getUTCDay() === 0;
+}
+
+export type DayCloseStatus = 'REGULARIZED' | 'ON_LEAVE' | 'HOLIDAY_OFF' | 'ABSENT';
+
+/**
+ * What to record for someone expected on a day (an approved ward placement, or office staff)
+ * who has no attendance row. Nothing until the shift has ended (check-in closes then); then an
+ * approved correction, approved leave, an office holiday / Sunday, or else ABSENT. Field
+ * staff placed on a holiday are expected: sanitation works every day.
+ */
+export function dayCloseStatus(input: {
+  kind: 'WARD' | 'OFFICE';
+  shiftEnded: boolean;
+  regularized: boolean;
+  onLeave: boolean;
+  holiday: boolean;
+  weeklyOff: boolean;
+}): DayCloseStatus | null {
+  if (!input.shiftEnded) return null;
+  if (input.regularized) return 'REGULARIZED';
+  if (input.onLeave) return 'ON_LEAVE';
+  if (input.kind === 'OFFICE' && (input.holiday || input.weeklyOff)) return 'HOLIDAY_OFF';
+  return 'ABSENT';
+}
+
+/**
+ * The status an existing log takes after a supervisor's decision, or null to leave it: an
+ * approved correction makes the day REGULARIZED (counted as attended); approved leave turns a
+ * day marked ABSENT without any check-in into ON_LEAVE. Worked days are never turned into leave.
+ */
+export function reconciledStatus(
+  log: { status: AttendanceStatus; hasCheckin: boolean },
+  decision: { regularized: boolean; onLeave: boolean },
+): AttendanceStatus | null {
+  if (decision.regularized) return log.status === 'REGULARIZED' ? null : 'REGULARIZED';
+  if (decision.onLeave && !log.hasCheckin && log.status === 'ABSENT') return 'ON_LEAVE';
+  return null;
+}
+
 // ------------------------------------------------------------------ Retention
 
 /** Used or expired liveness challenges are kept this long (enough to audit a disputed punch). */

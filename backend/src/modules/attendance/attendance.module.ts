@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AlertsModule } from '../alerts/alerts.module';
 import { FaceModule } from '../face/face.module';
+import { HolidaysModule } from '../holidays/holidays.module';
 import { LeaveModule } from '../leave/leave.module';
 import { OfficesModule } from '../offices/offices.module';
 import { RostersModule } from '../rosters/rosters.module';
@@ -43,6 +44,7 @@ import { TrackingService } from './tracking.service';
     RostersModule,
     ShiftsModule,
     LeaveModule,
+    HolidaysModule,
     WardsModule,
     OfficesModule,
     FaceModule,

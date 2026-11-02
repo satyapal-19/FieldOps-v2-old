@@ -360,5 +360,30 @@ describe('attendance punches (e2e)', () => {
         .expect(403);
       await http.get('/api/v1/attendance').expect(401);
     });
+
+    it("lets an inspector read a worker placed under them for the day (not their report)", async () => {
+      // WK3 reports to IN2, but today the ward inspector places them in IN1's team.
+      await http
+        .post('/api/v1/assignments')
+        .set('Authorization', tok.WI1)
+        .send({ date: today, staffId: s.WK3.id, inspectorId: s.IN1.id })
+        .expect(201);
+      clock.set('2026-11-02T03:00:00Z'); // 08:30 IST, inside the shift
+      const marked = await punch('IN1', await body('IN1', 'CHECK_IN', { staffId: s.WK3.id })).expect(200);
+      const id = marked.body.attendance.id as string;
+
+      await http.get(`/api/v1/attendance/${id}`).set('Authorization', tok.IN1).expect(200);
+      const mine = await http
+        .get(`/api/v1/attendance?staffId=${s.WK3.id}`)
+        .set('Authorization', tok.IN1)
+        .expect(200);
+      expect(mine.body.items.map((l: { id: string }) => l.id)).toEqual([id]);
+      await http
+        .get(`/api/v1/staff/${s.WK3.id}/route?date=${today}`)
+        .set('Authorization', tok.IN1)
+        .expect(200);
+      // Their own inspector still sees them (reporting line).
+      await http.get(`/api/v1/attendance/${id}`).set('Authorization', tok.IN2).expect(200);
+    });
   });
 });

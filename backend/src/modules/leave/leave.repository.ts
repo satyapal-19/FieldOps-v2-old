@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, EntityManager, ObjectLiteral, Repository, SelectQueryBuilder } from 'typeorm';
+import {
+  Between,
+  Brackets,
+  EntityManager,
+  ObjectLiteral,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import { LeaveRequest, ReviewStatus } from './entities/leave-request.entity';
 import { RegularizationRequest } from './entities/regularization-request.entity';
 
@@ -92,6 +99,18 @@ export class LeaveRepository {
       .andWhere('l.fromDate <= :date', { date })
       .andWhere('l.toDate >= :date', { date })
       .getOne();
+  }
+
+  /** Approved regularizations for attendance dates in [from, to]. */
+  async findApprovedRegularizations(
+    from: string,
+    to: string,
+  ): Promise<{ staffId: string; attendanceDate: string }[]> {
+    const rows = await this.regs.find({
+      where: { status: 'APPROVED', attendanceDate: Between(from, to) },
+      select: { staffId: true, attendanceDate: true },
+    });
+    return rows.map((r) => ({ staffId: r.staffId, attendanceDate: r.attendanceDate }));
   }
 
   /** Everyone on approved leave on an IST date. */

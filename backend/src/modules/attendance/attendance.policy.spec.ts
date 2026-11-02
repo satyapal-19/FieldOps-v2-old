@@ -12,6 +12,7 @@ import {
   isOutOfZone,
   isRepeatedLate,
   logForPing,
+  alertWardAt,
   lateMark,
   LIVENESS_ACTIONS,
   pickActions,
@@ -501,6 +502,15 @@ describe('logForPing and tamperSeverity', () => {
   });
 
   it.each([
+    ['during a shift in another ward: that ward', '2026-11-02T05:00:00Z', 'home', 'placed'],
+    ['outside any shift: the home ward', '2026-11-02T01:00:00Z', 'home', 'home'],
+    ['outside any shift, no home ward: none', '2026-11-02T01:00:00Z', null, undefined],
+  ])('alertWardAt %s', (_name, when, home, expected) => {
+    const placed = logs.map((l) => ({ ...l, wardId: l.id === 'day' ? 'placed' : 'home' }));
+    expect(alertWardAt(placed, at(when), home)).toBe(expected);
+  });
+
+  it.each([
     ['MOCK_LOCATION', 'HIGH'],
     ['GPS_DISABLED', 'HIGH'],
     ['PERMISSION_REVOKED', 'HIGH'],
@@ -518,6 +528,7 @@ describe('routeAccess', () => {
     reportsToId: 'me',
     homeWardId: 'w1',
     dayWardId: null,
+    dayInspectorId: null,
     ...fields,
   });
   const today = '2026-11-02';
@@ -541,6 +552,13 @@ describe('routeAccess', () => {
     ],
     ['inspector: own report, any day', Role.INSPECTOR, person(), '2026-10-01', 'ALLOWED'],
     ['inspector: another team', Role.INSPECTOR, person({ reportsToId: 'other' }), today, 'HIDDEN'],
+    [
+      'inspector: another team, placed under me that day',
+      Role.INSPECTOR,
+      person({ reportsToId: 'other', dayInspectorId: 'me' }),
+      today,
+      'ALLOWED',
+    ],
     ['worker: own route today', Role.WORKER, person({ id: 'me' }), today, 'ALLOWED'],
     [
       'worker: own night shift from yesterday',

@@ -34,12 +34,18 @@ export class AttendanceScheduler {
     );
   }
 
-  @Cron('0 30 1 * * *', { name: 'attendance-rollup', timeZone: IST_TIME_ZONE })
+  @Cron('0 10,40 * * * *', { name: 'attendance-day-close' })
+  dayClose(): Promise<void> {
+    return this.run('day-close', slotKey(this.clock.now(), 30), 25, () => this.jobs.closeDays());
+  }
+
+  // Nightly jobs fire three times; the lock runs each day once and retries a failed run.
+  @Cron('0 30 1,3,5 * * *', { name: 'attendance-rollup', timeZone: IST_TIME_ZONE })
   rollUp(): Promise<void> {
     return this.run('nightly-rollup', istDate(this.clock.now()), 120, () => this.jobs.rollUp());
   }
 
-  @Cron('0 30 2 * * *', { name: 'attendance-purge', timeZone: IST_TIME_ZONE })
+  @Cron('0 30 2,4,6 * * *', { name: 'attendance-purge', timeZone: IST_TIME_ZONE })
   purge(): Promise<void> {
     return this.run('retention-purge', istDate(this.clock.now()), 120, () => this.jobs.purge());
   }

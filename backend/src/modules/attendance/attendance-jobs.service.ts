@@ -3,15 +3,20 @@ import { AuditWriter } from '../../shared/audit/audit-writer';
 import { Clock } from '../../shared/clock/clock';
 import { addDays, istDate } from '../../shared/clock/ist';
 import { AppConfig } from '../../shared/config/app-config';
+import { Role } from '../../shared/auth/roles';
+import { isUniqueViolation } from '../../shared/database/db-errors';
 import { UnitOfWork } from '../../shared/database/unit-of-work';
 import { IdGenerator } from '../../shared/ids/id-generator';
 import { dedupeKey } from '../alerts/alerts.policy';
 import { AlertsService, RaiseAlert } from '../alerts/alerts.service';
 import { LeaveService } from '../leave/leave.service';
 import { RostersService } from '../rosters/rosters.service';
+import type { EffectiveShift } from '../shifts/shifts.policy';
 import { ShiftsService } from '../shifts/shifts.service';
 import type { Staff } from '../staff/entities/staff.entity';
 import { StaffService } from '../staff/staff.service';
+import { HolidaysService } from '../holidays/holidays.service';
+import { newAttendanceLog } from './attendance-log.factory';
 import { statusAtCheckout, workedMinutes } from './attendance.policy';
 import { AttendanceRepository } from './attendance.repository';
 import type { AttendanceLog } from './entities/attendance-log.entity';
@@ -21,6 +26,12 @@ import {
   autoCheckout,
   autoCheckoutDue,
   CHALLENGE_RETENTION_DAYS,
+  dayCloseDates,
+  dayCloseStatus,
+  isWeeklyOff,
+  LEAVE_RECONCILE_DAYS,
+  reconciledStatus,
+  REGULARIZATION_RECONCILE_DAYS,
   isSilent,
   pingDate,
   pingWindow,
@@ -78,6 +89,7 @@ export class AttendanceJobsService {
     private readonly shifts: ShiftsService,
     private readonly rosters: RostersService,
     private readonly leave: LeaveService,
+    private readonly holidays: HolidaysService,
     private readonly alerts: AlertsService,
     private readonly config: AppConfig,
     private readonly clock: Clock,
@@ -93,11 +105,12 @@ export class AttendanceJobsService {
     const now = this.clock.now();
     const open = await this.attendance.findOpen(istDate(now));
     const people = await this.peopleOf(open);
+    const shifts = await this.shiftsOf(open, people);
     let closed = 0;
     for (const log of open) {
       const person = people.get(log.staffId);
-      if (!person) continue;
-      const shift = await this.shifts.shiftFor(person, log.attendanceDate);
+      const shift = shifts.get(log.id);
+      if (!person || !shift) continue;
       if (!autoCheckoutDue(shift, now)) continue;
 
       const kind = log.officeId ? 'OFFICE' : 'WARD';
@@ -147,6 +160,157 @@ export class AttendanceJobsService {
     return `closed ${closed} of ${open.length} open shifts`;
   }
 
+  // ------------------------------------------------------------ Day close (every 30 min)
+
+  /**
+   * Gives every expected person a row once their shift has ended: approved field placements and
+   * active office staff without a check-in become REGULARIZED, ON_LEAVE, HOLIDAY_OFF or ABSENT
+   * (with an ABSENT alert). Then applies supervisors' decisions to rows that exist: approved
+   * corrections make the day REGULARIZED, approved leave turns ABSENT days into ON_LEAVE.
+   */
+  async closeDays(): Promise<string> {
+    const now = this.clock.now();
+    const today = istDate(now);
+    const regularized = new Set(
+      (
+        await this.leave.approvedRegularizations(
+          addDays(today, -REGULARIZATION_RECONCILE_DAYS),
+          today,
+        )
+      ).map((r) => `${r.staffId}|${r.attendanceDate}`),
+    );
+    const leaveOn = new Map<string, Set<string>>();
+    const onLeave = async (date: string) => {
+      if (!leaveOn.has(date)) leaveOn.set(date, await this.leave.staffOnLeave(date));
+      return leaveOn.get(date)!;
+    };
+    const officeIds = await this.staff.findIds({ role: Role.OFFICE_STAFF, isActive: true });
+
+    let written = 0;
+    let absent = 0;
+    for (const date of dayCloseDates(now)) {
+      const expected = new Map<string, { wardId: string | null; assignmentId: string | null }>();
+      for (const p of await this.rosters.approvedPlacements(date)) {
+        expected.set(p.staffId, { wardId: p.wardId, assignmentId: p.assignmentId });
+      }
+      for (const id of officeIds) {
+        if (!expected.has(id)) expected.set(id, { wardId: null, assignmentId: null });
+      }
+      const logged = new Set((await this.attendance.findForDate(date)).map((l) => l.staffId));
+      const missing = [...expected.keys()].filter((id) => !logged.has(id));
+      if (missing.length === 0) continue;
+
+      const people = await this.staff.findByIds(missing);
+      const shifts = await this.shifts.shiftsFor(people, date);
+      const leave = await onLeave(date);
+      const holiday = await this.holidays.isHoliday(date);
+      for (const person of people) {
+        const place = expected.get(person.id)!;
+        const shift = shifts.get(person.id)!;
+        const kind = place.wardId ? 'WARD' : 'OFFICE';
+        const status = dayCloseStatus({
+          kind,
+          shiftEnded: now >= shift.endsAt,
+          regularized: regularized.has(`${person.id}|${date}`),
+          onLeave: leave.has(person.id),
+          holiday,
+          weeklyOff: isWeeklyOff(date),
+        });
+        if (!status) continue;
+        const row = newAttendanceLog(this.ids.next(), person.id, date, now, {
+          status,
+          wardId: place.wardId,
+          officeId: kind === 'OFFICE' ? (person.officeId ?? null) : null,
+          assignmentId: place.assignmentId,
+          shiftType: shift.shiftType,
+        });
+        if (!(await this.insertDayRow(row, status))) continue;
+        written++;
+        if (status === 'ABSENT') {
+          absent++;
+          await this.raise({
+            alertType: 'ABSENT',
+            severity: 'MEDIUM',
+            message: `No check-in for the shift on ${date}`,
+            messageMr: `${date} रोजीच्या शिफ्टसाठी हजेरी नाही`,
+            staffId: person.id,
+            wardId: place.wardId ?? undefined,
+            details: { attendanceId: row.id, date },
+            dedupeKey: dedupeKey('ABSENT', person.id, date),
+          });
+        }
+      }
+    }
+
+    // Decisions taken after the day was written.
+    let corrected = 0;
+    const absentDays = await this.attendance.findAbsentBetween(
+      addDays(today, -LEAVE_RECONCILE_DAYS),
+      today,
+    );
+    for (const log of absentDays) {
+      corrected += await this.reconcile(log, now, {
+        regularized: regularized.has(`${log.staffId}|${log.attendanceDate}`),
+        onLeave: (await onLeave(log.attendanceDate)).has(log.staffId),
+      });
+    }
+    for (const key of regularized) {
+      const [staffId, date] = key.split('|');
+      const [log] = await this.attendance.findForDates(staffId, [date]);
+      if (log && log.status !== 'ABSENT') {
+        corrected += await this.reconcile(log, now, { regularized: true, onLeave: false });
+      }
+    }
+    return `wrote ${written} day rows (${absent} absent), corrected ${corrected}`;
+  }
+
+  /** Writes a closed day's row. False when it exists already (checked in meanwhile, or a rerun). */
+  private async insertDayRow(row: AttendanceLog, status: string): Promise<boolean> {
+    try {
+      await this.uow.run(async (tx) => {
+        await this.attendance.insert(row, tx);
+        await this.audit.write(tx, {
+          action: 'ATTENDANCE_DAY_CLOSED',
+          entityType: 'attendance',
+          entityId: row.id,
+          actorRole: 'SYSTEM',
+          details: { staffId: row.staffId, date: row.attendanceDate, status },
+        });
+      });
+      return true;
+    } catch (error) {
+      if (isUniqueViolation(error)) return false;
+      throw error;
+    }
+  }
+
+  /** Applies a supervisor's decision to an existing row (reconciledStatus). Returns rows changed. */
+  private async reconcile(
+    log: AttendanceLog,
+    now: Date,
+    decision: { regularized: boolean; onLeave: boolean },
+  ): Promise<number> {
+    const status = reconciledStatus({ status: log.status, hasCheckin: !!log.checkinAt }, decision);
+    if (!status) return 0;
+    return this.uow.run(async (tx) => {
+      const n = await this.attendance.setStatus(
+        log.id,
+        Number(log.version),
+        { status, updatedAt: now, ...(status === 'REGULARIZED' ? { isSuspicious: false } : {}) },
+        tx,
+      );
+      if (n === 0) return 0;
+      await this.audit.write(tx, {
+        action: 'ATTENDANCE_STATUS_RECONCILED',
+        entityType: 'attendance',
+        entityId: log.id,
+        actorRole: 'SYSTEM',
+        details: { staffId: log.staffId, date: log.attendanceDate, from: log.status, to: status },
+      });
+      return n;
+    });
+  }
+
   // ------------------------------------------------------------ Silent gaps (every 15 min)
 
   /**
@@ -160,6 +324,7 @@ export class AttendanceJobsService {
       (await this.tracking.findOpenSilentGaps()).map((g) => [g.staffId, g]),
     );
     const people = await this.peopleOf(open);
+    const shifts = await this.shiftsOf(open, people);
     const since = new Date(Math.min(now.getTime(), ...open.map((l) => l.checkinAt!.getTime())));
     const lastPings = await this.tracking.lastPingTimes(
       open.map((l) => l.staffId),
@@ -179,8 +344,8 @@ export class AttendanceJobsService {
         continue;
       }
       const person = people.get(log.staffId);
-      if (!person) continue;
-      const shift = await this.shifts.shiftFor(person, log.attendanceDate);
+      const shift = shifts.get(log.id);
+      if (!person || !shift) continue;
       if (!isSilent(lastSeen, shift, now)) continue;
       await this.openGap(log, person, lastSeen, now);
       found++;
@@ -367,6 +532,24 @@ export class AttendanceJobsService {
   }
 
   // ------------------------------------------------------------ Helpers
+
+  /** The effective shift of each log (by log id): one query per date, not one per person. */
+  private async shiftsOf(
+    logs: AttendanceLog[],
+    people: Map<string, Staff>,
+  ): Promise<Map<string, EffectiveShift>> {
+    const byLog = new Map<string, EffectiveShift>();
+    for (const date of new Set(logs.map((l) => l.attendanceDate))) {
+      const day = logs.filter((l) => l.attendanceDate === date);
+      const staff = day.map((l) => people.get(l.staffId)).filter((x): x is Staff => !!x);
+      const shifts = await this.shifts.shiftsFor(staff, date);
+      for (const l of day) {
+        const shift = shifts.get(l.staffId);
+        if (shift) byLog.set(l.id, shift);
+      }
+    }
+    return byLog;
+  }
 
   private async peopleOf(logs: AttendanceLog[]): Promise<Map<string, Staff>> {
     const ids = [...new Set(logs.map((l) => l.staffId))];

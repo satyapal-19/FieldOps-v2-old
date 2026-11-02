@@ -91,6 +91,17 @@ export class ShiftsService {
     return effectiveShift(date, person, await this.repo.findFor(person.id, date));
   }
 
+  /** shiftFor for many people at once: one query per 1000 people instead of one each. */
+  async shiftsFor(
+    people: readonly Pick<Staff, 'id' | 'shiftStart' | 'shiftEnd'>[],
+    date: string,
+  ): Promise<Map<string, EffectiveShift>> {
+    const overrides = new Map(
+      (await this.repo.findForMany(people.map((p) => p.id), date)).map((o) => [o.staffId, o]),
+    );
+    return new Map(people.map((p) => [p.id, effectiveShift(date, p, overrides.get(p.id) ?? null)]));
+  }
+
   async effectiveFor(actor: AuthUser, staffId: string, date: string): Promise<EffectiveShiftDto> {
     await this.visibleStaff(actor, staffId);
     return this.effective(staffId, date);

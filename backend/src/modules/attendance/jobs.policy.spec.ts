@@ -2,6 +2,10 @@ import { effectiveShift } from '../shifts/shifts.policy';
 import {
   autoCheckout,
   autoCheckoutDue,
+  dayCloseDates,
+  dayCloseStatus,
+  isWeeklyOff,
+  reconciledStatus,
   isSilent,
   pingDate,
   pingWindow,
@@ -223,5 +227,82 @@ describe('retention and roll-up dates', () => {
     ['just after IST midnight', '2026-11-01T18:30:00Z', ['2026-10-31', '2026-11-01']],
   ])('rolls up the two previous IST days at %s', (_case, now, dates) => {
     expect(rollupDates(at(now))).toEqual(dates);
+  });
+});
+
+describe('day close', () => {
+  it('looks at the day before yesterday through today (IST)', () => {
+    expect(dayCloseDates(at('2026-11-02T20:00:00Z'))).toEqual([
+      '2026-11-01',
+      '2026-11-02',
+      '2026-11-03',
+    ]);
+  });
+
+  it.each([
+    ['2026-11-01', true], // a Sunday
+    ['2026-11-02', false],
+  ])('%s weekly off: %s', (date, off) => {
+    expect(isWeeklyOff(date)).toBe(off);
+  });
+
+  const base = {
+    kind: 'WARD' as const,
+    shiftEnded: true,
+    regularized: false,
+    onLeave: false,
+    holiday: false,
+    weeklyOff: false,
+  };
+  it.each([
+    ['shift still running: wait', { shiftEnded: false }, null],
+    ['no check-in after the shift: absent', {}, 'ABSENT'],
+    ['approved leave', { onLeave: true }, 'ON_LEAVE'],
+    ['approved correction wins over leave', { regularized: true, onLeave: true }, 'REGULARIZED'],
+    ['office staff on a holiday', { kind: 'OFFICE', holiday: true }, 'HOLIDAY_OFF'],
+    ['office staff on Sunday', { kind: 'OFFICE', weeklyOff: true }, 'HOLIDAY_OFF'],
+    ['field staff placed on a holiday are expected', { holiday: true }, 'ABSENT'],
+    [
+      'leave on a holiday stays leave',
+      { kind: 'OFFICE', holiday: true, onLeave: true },
+      'ON_LEAVE',
+    ],
+  ] as const)('%s', (_case, fields, expected) => {
+    expect(dayCloseStatus({ ...base, ...fields })).toBe(expected);
+  });
+
+  it.each([
+    [
+      'correction of an absent day',
+      'ABSENT',
+      false,
+      { regularized: true, onLeave: false },
+      'REGULARIZED',
+    ],
+    [
+      'correction of a worked day',
+      'PRESENT',
+      true,
+      { regularized: true, onLeave: false },
+      'REGULARIZED',
+    ],
+    ['already corrected', 'REGULARIZED', true, { regularized: true, onLeave: false }, null],
+    [
+      'leave over an absent day',
+      'ABSENT',
+      false,
+      { regularized: false, onLeave: true },
+      'ON_LEAVE',
+    ],
+    [
+      'leave never replaces a worked day',
+      'PRESENT',
+      true,
+      { regularized: false, onLeave: true },
+      null,
+    ],
+    ['no decision', 'ABSENT', false, { regularized: false, onLeave: false }, null],
+  ] as const)('reconcile: %s', (_case, status, hasCheckin, decision, expected) => {
+    expect(reconciledStatus({ status, hasCheckin }, decision)).toBe(expected);
   });
 });

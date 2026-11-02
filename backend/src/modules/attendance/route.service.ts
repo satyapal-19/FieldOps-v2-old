@@ -5,6 +5,7 @@ import { addDays, istDate } from '../../shared/clock/ist';
 import { AppConfig } from '../../shared/config/app-config';
 import { AppError } from '../../shared/errors/app-error';
 import { ErrorCode } from '../../shared/errors/error-codes';
+import { RostersService } from '../rosters/rosters.service';
 import { StaffService } from '../staff/staff.service';
 import { routeAccess } from './attendance.policy';
 import { AttendanceRepository } from './attendance.repository';
@@ -46,6 +47,7 @@ export class RouteService {
     private readonly attendance: AttendanceRepository,
     private readonly summaries: SummariesRepository,
     private readonly staff: StaffService,
+    private readonly rosters: RostersService,
     private readonly config: AppConfig,
     private readonly clock: Clock,
   ) {}
@@ -58,6 +60,7 @@ export class RouteService {
     }
     const subject = await this.staff.findById(staffId);
     const [log] = subject ? await this.attendance.findForDates(staffId, [date]) : [];
+    const placement = subject ? await this.rosters.assignmentFor(date, staffId) : null;
     const access = subject
       ? routeAccess(
           actor,
@@ -66,6 +69,7 @@ export class RouteService {
             reportsToId: subject.reportsToId,
             homeWardId: subject.homeWardId,
             dayWardId: log?.wardId ?? null,
+            dayInspectorId: placement?.inspectorId ?? null,
           },
           date,
           today,

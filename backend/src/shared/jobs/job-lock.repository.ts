@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, LessThan, Not, Repository } from 'typeorm';
+import { In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { isUniqueViolation } from '../database/db-errors';
 import { JobLock, JobStatus } from './job-lock.entity';
 
@@ -24,8 +24,9 @@ export class JobLockRepository {
   }
 
   /**
-   * Takes the lock for one slot. Succeeds only when nobody holds a live lock and this slot
-   * has not started yet, so of several instances firing together exactly one gets 1 row.
+   * Takes the lock for one slot. Succeeds only when nobody holds a live lock and this slot has
+   * not run yet, or its run failed or died (RUNNING with an expired lock), so of several
+   * instances firing together exactly one gets 1 row, and a failed slot is retried.
    */
   async acquire(
     jobName: string,
@@ -35,7 +36,11 @@ export class JobLockRepository {
     lockedUntil: Date,
   ): Promise<boolean> {
     const free = [{ lockedUntil: IsNull() }, { lockedUntil: LessThan(now) }];
-    const newSlot = [{ lastRunKey: IsNull() }, { lastRunKey: Not(runKey) }];
+    const newSlot = [
+      { lastRunKey: IsNull() },
+      { lastRunKey: Not(runKey) },
+      { lastStatus: In<JobStatus>(['FAILED', 'RUNNING']) },
+    ];
     const result = await this.locks.update(
       free.flatMap((f) => newSlot.map((k) => ({ jobName, ...f, ...k }))),
       {

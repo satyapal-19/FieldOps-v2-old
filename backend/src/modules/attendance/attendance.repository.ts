@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  Between,
   Brackets,
   EntityManager,
   In,
@@ -18,6 +19,10 @@ import { LivenessChallenge } from './entities/liveness-challenge.entity';
 export interface AttendanceFilter {
   /** Logs of these people; undefined = no restriction. */
   staffIds?: readonly string[];
+  /** Also logs made under these assignments (an inspector's placed workers), OR-ed with staffIds. */
+  orAssignmentIds?: readonly string[];
+  /** Only this person (AND-ed with the scope above). */
+  staffId?: string;
   wardId?: string;
   status?: AttendanceStatus;
   /** Inclusive IST date range. */
@@ -71,19 +76,24 @@ export class AttendanceRepository {
   ): Promise<[AttendanceLog[], number]> {
     const qb = this.logs.createQueryBuilder('l');
     if (filter.staffIds) {
-      if (filter.staffIds.length === 0) qb.andWhere('1 = 0');
+      const ids = filter.staffIds;
+      const assignments = filter.orAssignmentIds ?? [];
+      if (ids.length === 0 && assignments.length === 0) qb.andWhere('1 = 0');
       else {
         // Chunks of 1000: Oracle's IN-list limit.
-        const ids = filter.staffIds;
         qb.andWhere(
           new Brackets((w) => {
             for (let i = 0; i < ids.length; i += 1000) {
               w.orWhere(`l.staffId IN (:...s${i})`, { [`s${i}`]: ids.slice(i, i + 1000) });
             }
+            for (let i = 0; i < assignments.length; i += 1000) {
+              w.orWhere(`l.assignmentId IN (:...a${i})`, { [`a${i}`]: assignments.slice(i, i + 1000) });
+            }
           }),
         );
       }
     }
+    if (filter.staffId) qb.andWhere('l.staffId = :oneStaff', { oneStaff: filter.staffId });
     if (filter.wardId) qb.andWhere('l.wardId = :wardId', { wardId: filter.wardId });
     if (filter.status) qb.andWhere('l.status = :status', { status: filter.status });
     if (filter.from) qb.andWhere('l.attendanceDate >= :from', { from: filter.from });
@@ -121,12 +131,30 @@ export class AttendanceRepository {
     return rows;
   }
 
+  /** Logs written ABSENT (no check-in) for IST dates in [from, to]. */
+  findAbsentBetween(from: string, to: string): Promise<AttendanceLog[]> {
+    return this.logs.find({
+      where: { status: 'ABSENT', checkinAt: IsNull(), attendanceDate: Between(from, to) },
+    });
+  }
+
+  /** Changes a log's status (versioned). Returns rows updated: 0 = changed meanwhile. */
+  async setStatus(
+    id: string,
+    version: number,
+    fields: Pick<AttendanceLog, 'status' | 'updatedAt'> & Partial<AttendanceLog>,
+    tx: EntityManager,
+  ): Promise<number> {
+    const result = await this.lr(tx).update({ id, version }, { ...fields, version: version + 1 });
+    return result.affected ?? 0;
+  }
+
   async insert(row: AttendanceLog, tx: EntityManager): Promise<void> {
     await this.lr(tx).insert(row);
   }
 
   /**
-   * Records the check-in on a log that exists without one (e.g. written ABSENT by the daily
+   * Records the check-in on a log that exists without one (e.g. written ABSENT by the day-close
    * job). Returns rows updated: 0 = someone checked in first.
    */
   async checkIn(

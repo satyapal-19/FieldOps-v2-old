@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { Between, EntityManager, Repository } from 'typeorm';
 import { isUniqueViolation } from '../../shared/database/db-errors';
 import { AppError } from '../../shared/errors/app-error';
 import { ErrorCode } from '../../shared/errors/error-codes';
@@ -102,6 +102,14 @@ export class RostersRepository {
     return this.ar().find({
       where: { shiftDate: date, isApproved: true },
       select: { id: true, staffId: true, wardId: true },
+    });
+  }
+
+  /** The assignments that name this inspector, between two IST dates (inclusive). */
+  findForInspector(inspectorId: string, from: string, to: string): Promise<DailyAssignment[]> {
+    return this.ar().find({
+      where: { inspectorId, shiftDate: Between(from, to) },
+      select: { id: true, staffId: true },
     });
   }
 

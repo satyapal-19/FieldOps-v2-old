@@ -488,9 +488,24 @@ export class RostersService {
     return this.repo.findAssignmentFor(date, staffId);
   }
 
-  /** Who is approved to work where on an IST date (for the daily ward summary). */
-  async approvedPlacements(date: string): Promise<{ staffId: string; wardId: string }[]> {
+  /** Assignments that put people under this inspector between two IST dates (read scope). */
+  async placementsUnder(
+    inspectorId: string,
+    from: string,
+    to: string,
+  ): Promise<{ assignmentId: string; staffId: string }[]> {
+    return (await this.repo.findForInspector(inspectorId, from, to)).map((a) => ({
+      assignmentId: a.id,
+      staffId: a.staffId,
+    }));
+  }
+
+  /** Who is approved to work where on an IST date (daily ward summary, day-close job). */
+  async approvedPlacements(
+    date: string,
+  ): Promise<{ assignmentId: string; staffId: string; wardId: string }[]> {
     return (await this.repo.findApprovedOn(date)).map((a) => ({
+      assignmentId: a.id,
       staffId: a.staffId,
       wardId: a.wardId,
     }));

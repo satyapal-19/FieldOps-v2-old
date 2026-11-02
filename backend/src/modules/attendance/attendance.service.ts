@@ -3,7 +3,7 @@ import { randomInt } from 'node:crypto';
 import { AuditWriter } from '../../shared/audit/audit-writer';
 import type { AuthUser } from '../../shared/auth/auth-user';
 import { Clock } from '../../shared/clock/clock';
-import { istDate } from '../../shared/clock/ist';
+import { addDays, istDate } from '../../shared/clock/ist';
 import { isUniqueViolation } from '../../shared/database/db-errors';
 import { UnitOfWork } from '../../shared/database/unit-of-work';
 import { AppError } from '../../shared/errors/app-error';
@@ -40,6 +40,7 @@ import {
   statusAtCheckout,
   workedMinutes,
 } from './attendance.policy';
+import { newAttendanceLog } from './attendance-log.factory';
 import { AttendanceFilter, AttendanceRepository } from './attendance.repository';
 import type {
   AttendanceLogDto,
@@ -108,6 +109,9 @@ function previousDay(date: string): string {
  * hierarchy, approved assignment, geofence, one-time liveness challenge and server-side face
  * match are all decided here, before anything is written. Rules: attendance.policy.
  */
+/** Without a date range, an inspector's placed-worker days are looked up this far back. */
+const TEAM_LOOKBACK_DAYS = 92;
+
 @Injectable()
 export class AttendanceService {
   private readonly logger = new Logger(AttendanceService.name);
@@ -247,7 +251,7 @@ export class AttendanceService {
         logId = existing.id;
       } else {
         logId = this.ids.next();
-        await this.repo.insert(this.newLog(logId, subject.id, shift.date, now, fields), tx);
+        await this.repo.insert(newAttendanceLog(logId, subject.id, shift.date, now, fields), tx);
       }
       await this.audit.write(tx, {
         action: mode === 'SELF' ? 'ATTENDANCE_CHECKIN' : 'ATTENDANCE_PROXY_CHECKIN',
@@ -359,8 +363,21 @@ export class AttendanceService {
         scope.selfId,
         ...(await this.staff.findIds({ reportsToId: scope.managerId })),
       ];
-    }
-    if (q.staffId) {
+      // Workers placed under this inspector for a day (who may report to someone else): the
+      // inspector can mark them, so must see those days too. Bounded to the asked range.
+      const today = istDate(this.clock.now());
+      const placed = await this.rosters.placementsUnder(
+        scope.managerId,
+        q.from ?? addDays(q.to ?? today, -TEAM_LOOKBACK_DAYS),
+        q.to ?? today,
+      );
+      filter.orAssignmentIds = placed.map((p) => p.assignmentId);
+      if (q.staffId) {
+        const known = filter.staffIds.includes(q.staffId) || placed.some((p) => p.staffId === q.staffId);
+        if (!known) throw new AppError(ErrorCode.FORBIDDEN);
+        filter.staffId = q.staffId;
+      }
+    } else if (q.staffId) {
       if (filter.staffIds && !filter.staffIds.includes(q.staffId)) {
         throw new AppError(ErrorCode.FORBIDDEN);
       }
@@ -392,7 +409,9 @@ export class AttendanceService {
       case 'TEAM': {
         if (log.staffId === scope.selfId) return true;
         const person = await this.staff.findById(log.staffId);
-        return person?.reportsToId === scope.managerId;
+        if (person?.reportsToId === scope.managerId) return true;
+        const placed = await this.rosters.assignmentFor(log.attendanceDate, log.staffId);
+        return placed?.inspectorId === scope.managerId;
       }
     }
   }
@@ -499,56 +518,6 @@ export class AttendanceService {
       });
     }
     return { kind: 'image', staffId, image, challengeId: dto.challengeId };
-  }
-
-  private newLog(
-    id: string,
-    staffId: string,
-    date: string,
-    now: Date,
-    fields: Partial<AttendanceLog>,
-  ): AttendanceLog {
-    return {
-      id,
-      staffId,
-      attendanceDate: date,
-      wardId: null,
-      officeId: null,
-      assignmentId: null,
-      shiftType: null,
-      status: 'ABSENT',
-      isLate: false,
-      lateMinutes: 0,
-      workedMinutes: null,
-      checkinClientUuid: null,
-      checkinAt: null,
-      checkinLat: null,
-      checkinLng: null,
-      checkinAccuracyM: null,
-      checkinInGeofence: false,
-      checkinDistanceM: null,
-      checkinIsMocked: false,
-      checkinChallengeId: null,
-      checkinFaceScore: null,
-      checkinFacePassed: false,
-      checkinMode: null,
-      checkinMarkedById: null,
-      checkoutClientUuid: null,
-      checkoutAt: null,
-      checkoutLat: null,
-      checkoutLng: null,
-      checkoutAccuracyM: null,
-      checkoutInGeofence: null,
-      checkoutType: null,
-      checkoutMode: null,
-      checkoutMarkedById: null,
-      isSuspicious: false,
-      notes: null,
-      version: 1,
-      createdAt: now,
-      updatedAt: now,
-      ...fields,
-    };
   }
 
   // ------------------------------------------------------------ Alerts (after commit)
