@@ -1,0 +1,403 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'error_code.dart';
+
+// **************************************************************************
+// BuiltValueGenerator
+// **************************************************************************
+
+const ErrorCode _$VALIDATION_FAILED = const ErrorCode._('VALIDATION_FAILED');
+const ErrorCode _$UNAUTHENTICATED = const ErrorCode._('UNAUTHENTICATED');
+const ErrorCode _$FORBIDDEN = const ErrorCode._('FORBIDDEN');
+const ErrorCode _$NOT_FOUND = const ErrorCode._('NOT_FOUND');
+const ErrorCode _$CONFLICT = const ErrorCode._('CONFLICT');
+const ErrorCode _$VERSION_CONFLICT = const ErrorCode._('VERSION_CONFLICT');
+const ErrorCode _$PAYLOAD_TOO_LARGE = const ErrorCode._('PAYLOAD_TOO_LARGE');
+const ErrorCode _$RULE_VIOLATION = const ErrorCode._('RULE_VIOLATION');
+const ErrorCode _$RATE_LIMITED = const ErrorCode._('RATE_LIMITED');
+const ErrorCode _$HTTP_ERROR = const ErrorCode._('HTTP_ERROR');
+const ErrorCode _$SERVICE_UNAVAILABLE =
+    const ErrorCode._('SERVICE_UNAVAILABLE');
+const ErrorCode _$INTERNAL_ERROR = const ErrorCode._('INTERNAL_ERROR');
+const ErrorCode _$AUTH_INVALID_CREDENTIALS =
+    const ErrorCode._('AUTH_INVALID_CREDENTIALS');
+const ErrorCode _$AUTH_OTP_INVALID = const ErrorCode._('AUTH_OTP_INVALID');
+const ErrorCode _$AUTH_OTP_EXPIRED = const ErrorCode._('AUTH_OTP_EXPIRED');
+const ErrorCode _$AUTH_OTP_TOO_MANY_ATTEMPTS =
+    const ErrorCode._('AUTH_OTP_TOO_MANY_ATTEMPTS');
+const ErrorCode _$AUTH_OTP_RATE_LIMITED =
+    const ErrorCode._('AUTH_OTP_RATE_LIMITED');
+const ErrorCode _$AUTH_OTP_DELIVERY_UNAVAILABLE =
+    const ErrorCode._('AUTH_OTP_DELIVERY_UNAVAILABLE');
+const ErrorCode _$AUTH_SESSION_REVOKED =
+    const ErrorCode._('AUTH_SESSION_REVOKED');
+const ErrorCode _$AUTH_ACCOUNT_INACTIVE =
+    const ErrorCode._('AUTH_ACCOUNT_INACTIVE');
+const ErrorCode _$AUTH_WEAK_PASSWORD = const ErrorCode._('AUTH_WEAK_PASSWORD');
+const ErrorCode _$STAFF_IDENTITY_TAKEN =
+    const ErrorCode._('STAFF_IDENTITY_TAKEN');
+const ErrorCode _$OFFICE_CODE_TAKEN = const ErrorCode._('OFFICE_CODE_TAKEN');
+const ErrorCode _$ROSTER_WORKER_TAKEN =
+    const ErrorCode._('ROSTER_WORKER_TAKEN');
+const ErrorCode _$ASSIGNMENT_EXISTS = const ErrorCode._('ASSIGNMENT_EXISTS');
+const ErrorCode _$HOLIDAY_DATE_TAKEN = const ErrorCode._('HOLIDAY_DATE_TAKEN');
+const ErrorCode _$LEAVE_OVERLAP = const ErrorCode._('LEAVE_OVERLAP');
+const ErrorCode _$REGULARIZATION_EXISTS =
+    const ErrorCode._('REGULARIZATION_EXISTS');
+const ErrorCode _$WARD_CODE_TAKEN = const ErrorCode._('WARD_CODE_TAKEN');
+const ErrorCode _$INVALID_BOUNDARY = const ErrorCode._('INVALID_BOUNDARY');
+const ErrorCode _$OUTSIDE_WARD = const ErrorCode._('OUTSIDE_WARD');
+const ErrorCode _$NO_ASSIGNMENT = const ErrorCode._('NO_ASSIGNMENT');
+const ErrorCode _$ASSIGNMENT_NOT_APPROVED =
+    const ErrorCode._('ASSIGNMENT_NOT_APPROVED');
+const ErrorCode _$OUTSIDE_GEOFENCE = const ErrorCode._('OUTSIDE_GEOFENCE');
+const ErrorCode _$LOCATION_TOO_INACCURATE =
+    const ErrorCode._('LOCATION_TOO_INACCURATE');
+const ErrorCode _$OUTSIDE_SHIFT_WINDOW =
+    const ErrorCode._('OUTSIDE_SHIFT_WINDOW');
+const ErrorCode _$ALREADY_CHECKED_IN = const ErrorCode._('ALREADY_CHECKED_IN');
+const ErrorCode _$ALREADY_CHECKED_OUT =
+    const ErrorCode._('ALREADY_CHECKED_OUT');
+const ErrorCode _$NOT_CHECKED_IN = const ErrorCode._('NOT_CHECKED_IN');
+const ErrorCode _$ON_LEAVE = const ErrorCode._('ON_LEAVE');
+const ErrorCode _$CHALLENGE_INVALID = const ErrorCode._('CHALLENGE_INVALID');
+const ErrorCode _$CHALLENGE_EXPIRED = const ErrorCode._('CHALLENGE_EXPIRED');
+const ErrorCode _$FACE_MISMATCH = const ErrorCode._('FACE_MISMATCH');
+const ErrorCode _$FACE_PROVIDER_UNAVAILABLE =
+    const ErrorCode._('FACE_PROVIDER_UNAVAILABLE');
+const ErrorCode _$FACE_NOT_ENROLLED = const ErrorCode._('FACE_NOT_ENROLLED');
+const ErrorCode _$AADHAAR_CAPTURE_FAILED =
+    const ErrorCode._('AADHAAR_CAPTURE_FAILED');
+const ErrorCode _$AADHAAR_IDENTITY_MISSING =
+    const ErrorCode._('AADHAAR_IDENTITY_MISSING');
+
+ErrorCode _$valueOf(String name) {
+  switch (name) {
+    case 'VALIDATION_FAILED':
+      return _$VALIDATION_FAILED;
+    case 'UNAUTHENTICATED':
+      return _$UNAUTHENTICATED;
+    case 'FORBIDDEN':
+      return _$FORBIDDEN;
+    case 'NOT_FOUND':
+      return _$NOT_FOUND;
+    case 'CONFLICT':
+      return _$CONFLICT;
+    case 'VERSION_CONFLICT':
+      return _$VERSION_CONFLICT;
+    case 'PAYLOAD_TOO_LARGE':
+      return _$PAYLOAD_TOO_LARGE;
+    case 'RULE_VIOLATION':
+      return _$RULE_VIOLATION;
+    case 'RATE_LIMITED':
+      return _$RATE_LIMITED;
+    case 'HTTP_ERROR':
+      return _$HTTP_ERROR;
+    case 'SERVICE_UNAVAILABLE':
+      return _$SERVICE_UNAVAILABLE;
+    case 'INTERNAL_ERROR':
+      return _$INTERNAL_ERROR;
+    case 'AUTH_INVALID_CREDENTIALS':
+      return _$AUTH_INVALID_CREDENTIALS;
+    case 'AUTH_OTP_INVALID':
+      return _$AUTH_OTP_INVALID;
+    case 'AUTH_OTP_EXPIRED':
+      return _$AUTH_OTP_EXPIRED;
+    case 'AUTH_OTP_TOO_MANY_ATTEMPTS':
+      return _$AUTH_OTP_TOO_MANY_ATTEMPTS;
+    case 'AUTH_OTP_RATE_LIMITED':
+      return _$AUTH_OTP_RATE_LIMITED;
+    case 'AUTH_OTP_DELIVERY_UNAVAILABLE':
+      return _$AUTH_OTP_DELIVERY_UNAVAILABLE;
+    case 'AUTH_SESSION_REVOKED':
+      return _$AUTH_SESSION_REVOKED;
+    case 'AUTH_ACCOUNT_INACTIVE':
+      return _$AUTH_ACCOUNT_INACTIVE;
+    case 'AUTH_WEAK_PASSWORD':
+      return _$AUTH_WEAK_PASSWORD;
+    case 'STAFF_IDENTITY_TAKEN':
+      return _$STAFF_IDENTITY_TAKEN;
+    case 'OFFICE_CODE_TAKEN':
+      return _$OFFICE_CODE_TAKEN;
+    case 'ROSTER_WORKER_TAKEN':
+      return _$ROSTER_WORKER_TAKEN;
+    case 'ASSIGNMENT_EXISTS':
+      return _$ASSIGNMENT_EXISTS;
+    case 'HOLIDAY_DATE_TAKEN':
+      return _$HOLIDAY_DATE_TAKEN;
+    case 'LEAVE_OVERLAP':
+      return _$LEAVE_OVERLAP;
+    case 'REGULARIZATION_EXISTS':
+      return _$REGULARIZATION_EXISTS;
+    case 'WARD_CODE_TAKEN':
+      return _$WARD_CODE_TAKEN;
+    case 'INVALID_BOUNDARY':
+      return _$INVALID_BOUNDARY;
+    case 'OUTSIDE_WARD':
+      return _$OUTSIDE_WARD;
+    case 'NO_ASSIGNMENT':
+      return _$NO_ASSIGNMENT;
+    case 'ASSIGNMENT_NOT_APPROVED':
+      return _$ASSIGNMENT_NOT_APPROVED;
+    case 'OUTSIDE_GEOFENCE':
+      return _$OUTSIDE_GEOFENCE;
+    case 'LOCATION_TOO_INACCURATE':
+      return _$LOCATION_TOO_INACCURATE;
+    case 'OUTSIDE_SHIFT_WINDOW':
+      return _$OUTSIDE_SHIFT_WINDOW;
+    case 'ALREADY_CHECKED_IN':
+      return _$ALREADY_CHECKED_IN;
+    case 'ALREADY_CHECKED_OUT':
+      return _$ALREADY_CHECKED_OUT;
+    case 'NOT_CHECKED_IN':
+      return _$NOT_CHECKED_IN;
+    case 'ON_LEAVE':
+      return _$ON_LEAVE;
+    case 'CHALLENGE_INVALID':
+      return _$CHALLENGE_INVALID;
+    case 'CHALLENGE_EXPIRED':
+      return _$CHALLENGE_EXPIRED;
+    case 'FACE_MISMATCH':
+      return _$FACE_MISMATCH;
+    case 'FACE_PROVIDER_UNAVAILABLE':
+      return _$FACE_PROVIDER_UNAVAILABLE;
+    case 'FACE_NOT_ENROLLED':
+      return _$FACE_NOT_ENROLLED;
+    case 'AADHAAR_CAPTURE_FAILED':
+      return _$AADHAAR_CAPTURE_FAILED;
+    case 'AADHAAR_IDENTITY_MISSING':
+      return _$AADHAAR_IDENTITY_MISSING;
+    default:
+      throw ArgumentError(name);
+  }
+}
+
+final BuiltSet<ErrorCode> _$values = BuiltSet<ErrorCode>(const <ErrorCode>[
+  _$VALIDATION_FAILED,
+  _$UNAUTHENTICATED,
+  _$FORBIDDEN,
+  _$NOT_FOUND,
+  _$CONFLICT,
+  _$VERSION_CONFLICT,
+  _$PAYLOAD_TOO_LARGE,
+  _$RULE_VIOLATION,
+  _$RATE_LIMITED,
+  _$HTTP_ERROR,
+  _$SERVICE_UNAVAILABLE,
+  _$INTERNAL_ERROR,
+  _$AUTH_INVALID_CREDENTIALS,
+  _$AUTH_OTP_INVALID,
+  _$AUTH_OTP_EXPIRED,
+  _$AUTH_OTP_TOO_MANY_ATTEMPTS,
+  _$AUTH_OTP_RATE_LIMITED,
+  _$AUTH_OTP_DELIVERY_UNAVAILABLE,
+  _$AUTH_SESSION_REVOKED,
+  _$AUTH_ACCOUNT_INACTIVE,
+  _$AUTH_WEAK_PASSWORD,
+  _$STAFF_IDENTITY_TAKEN,
+  _$OFFICE_CODE_TAKEN,
+  _$ROSTER_WORKER_TAKEN,
+  _$ASSIGNMENT_EXISTS,
+  _$HOLIDAY_DATE_TAKEN,
+  _$LEAVE_OVERLAP,
+  _$REGULARIZATION_EXISTS,
+  _$WARD_CODE_TAKEN,
+  _$INVALID_BOUNDARY,
+  _$OUTSIDE_WARD,
+  _$NO_ASSIGNMENT,
+  _$ASSIGNMENT_NOT_APPROVED,
+  _$OUTSIDE_GEOFENCE,
+  _$LOCATION_TOO_INACCURATE,
+  _$OUTSIDE_SHIFT_WINDOW,
+  _$ALREADY_CHECKED_IN,
+  _$ALREADY_CHECKED_OUT,
+  _$NOT_CHECKED_IN,
+  _$ON_LEAVE,
+  _$CHALLENGE_INVALID,
+  _$CHALLENGE_EXPIRED,
+  _$FACE_MISMATCH,
+  _$FACE_PROVIDER_UNAVAILABLE,
+  _$FACE_NOT_ENROLLED,
+  _$AADHAAR_CAPTURE_FAILED,
+  _$AADHAAR_IDENTITY_MISSING,
+]);
+
+class _$ErrorCodeMeta {
+  const _$ErrorCodeMeta();
+  ErrorCode get VALIDATION_FAILED => _$VALIDATION_FAILED;
+  ErrorCode get UNAUTHENTICATED => _$UNAUTHENTICATED;
+  ErrorCode get FORBIDDEN => _$FORBIDDEN;
+  ErrorCode get NOT_FOUND => _$NOT_FOUND;
+  ErrorCode get CONFLICT => _$CONFLICT;
+  ErrorCode get VERSION_CONFLICT => _$VERSION_CONFLICT;
+  ErrorCode get PAYLOAD_TOO_LARGE => _$PAYLOAD_TOO_LARGE;
+  ErrorCode get RULE_VIOLATION => _$RULE_VIOLATION;
+  ErrorCode get RATE_LIMITED => _$RATE_LIMITED;
+  ErrorCode get HTTP_ERROR => _$HTTP_ERROR;
+  ErrorCode get SERVICE_UNAVAILABLE => _$SERVICE_UNAVAILABLE;
+  ErrorCode get INTERNAL_ERROR => _$INTERNAL_ERROR;
+  ErrorCode get AUTH_INVALID_CREDENTIALS => _$AUTH_INVALID_CREDENTIALS;
+  ErrorCode get AUTH_OTP_INVALID => _$AUTH_OTP_INVALID;
+  ErrorCode get AUTH_OTP_EXPIRED => _$AUTH_OTP_EXPIRED;
+  ErrorCode get AUTH_OTP_TOO_MANY_ATTEMPTS => _$AUTH_OTP_TOO_MANY_ATTEMPTS;
+  ErrorCode get AUTH_OTP_RATE_LIMITED => _$AUTH_OTP_RATE_LIMITED;
+  ErrorCode get AUTH_OTP_DELIVERY_UNAVAILABLE =>
+      _$AUTH_OTP_DELIVERY_UNAVAILABLE;
+  ErrorCode get AUTH_SESSION_REVOKED => _$AUTH_SESSION_REVOKED;
+  ErrorCode get AUTH_ACCOUNT_INACTIVE => _$AUTH_ACCOUNT_INACTIVE;
+  ErrorCode get AUTH_WEAK_PASSWORD => _$AUTH_WEAK_PASSWORD;
+  ErrorCode get STAFF_IDENTITY_TAKEN => _$STAFF_IDENTITY_TAKEN;
+  ErrorCode get OFFICE_CODE_TAKEN => _$OFFICE_CODE_TAKEN;
+  ErrorCode get ROSTER_WORKER_TAKEN => _$ROSTER_WORKER_TAKEN;
+  ErrorCode get ASSIGNMENT_EXISTS => _$ASSIGNMENT_EXISTS;
+  ErrorCode get HOLIDAY_DATE_TAKEN => _$HOLIDAY_DATE_TAKEN;
+  ErrorCode get LEAVE_OVERLAP => _$LEAVE_OVERLAP;
+  ErrorCode get REGULARIZATION_EXISTS => _$REGULARIZATION_EXISTS;
+  ErrorCode get WARD_CODE_TAKEN => _$WARD_CODE_TAKEN;
+  ErrorCode get INVALID_BOUNDARY => _$INVALID_BOUNDARY;
+  ErrorCode get OUTSIDE_WARD => _$OUTSIDE_WARD;
+  ErrorCode get NO_ASSIGNMENT => _$NO_ASSIGNMENT;
+  ErrorCode get ASSIGNMENT_NOT_APPROVED => _$ASSIGNMENT_NOT_APPROVED;
+  ErrorCode get OUTSIDE_GEOFENCE => _$OUTSIDE_GEOFENCE;
+  ErrorCode get LOCATION_TOO_INACCURATE => _$LOCATION_TOO_INACCURATE;
+  ErrorCode get OUTSIDE_SHIFT_WINDOW => _$OUTSIDE_SHIFT_WINDOW;
+  ErrorCode get ALREADY_CHECKED_IN => _$ALREADY_CHECKED_IN;
+  ErrorCode get ALREADY_CHECKED_OUT => _$ALREADY_CHECKED_OUT;
+  ErrorCode get NOT_CHECKED_IN => _$NOT_CHECKED_IN;
+  ErrorCode get ON_LEAVE => _$ON_LEAVE;
+  ErrorCode get CHALLENGE_INVALID => _$CHALLENGE_INVALID;
+  ErrorCode get CHALLENGE_EXPIRED => _$CHALLENGE_EXPIRED;
+  ErrorCode get FACE_MISMATCH => _$FACE_MISMATCH;
+  ErrorCode get FACE_PROVIDER_UNAVAILABLE => _$FACE_PROVIDER_UNAVAILABLE;
+  ErrorCode get FACE_NOT_ENROLLED => _$FACE_NOT_ENROLLED;
+  ErrorCode get AADHAAR_CAPTURE_FAILED => _$AADHAAR_CAPTURE_FAILED;
+  ErrorCode get AADHAAR_IDENTITY_MISSING => _$AADHAAR_IDENTITY_MISSING;
+  ErrorCode valueOf(String name) => _$valueOf(name);
+  BuiltSet<ErrorCode> get values => _$values;
+}
+
+abstract class _$ErrorCodeMixin {
+  // ignore: non_constant_identifier_names
+  _$ErrorCodeMeta get ErrorCode => const _$ErrorCodeMeta();
+}
+
+Serializer<ErrorCode> _$errorCodeSerializer = _$ErrorCodeSerializer();
+
+class _$ErrorCodeSerializer implements PrimitiveSerializer<ErrorCode> {
+  static const Map<String, Object> _toWire = const <String, Object>{
+    'VALIDATION_FAILED': 'VALIDATION_FAILED',
+    'UNAUTHENTICATED': 'UNAUTHENTICATED',
+    'FORBIDDEN': 'FORBIDDEN',
+    'NOT_FOUND': 'NOT_FOUND',
+    'CONFLICT': 'CONFLICT',
+    'VERSION_CONFLICT': 'VERSION_CONFLICT',
+    'PAYLOAD_TOO_LARGE': 'PAYLOAD_TOO_LARGE',
+    'RULE_VIOLATION': 'RULE_VIOLATION',
+    'RATE_LIMITED': 'RATE_LIMITED',
+    'HTTP_ERROR': 'HTTP_ERROR',
+    'SERVICE_UNAVAILABLE': 'SERVICE_UNAVAILABLE',
+    'INTERNAL_ERROR': 'INTERNAL_ERROR',
+    'AUTH_INVALID_CREDENTIALS': 'AUTH_INVALID_CREDENTIALS',
+    'AUTH_OTP_INVALID': 'AUTH_OTP_INVALID',
+    'AUTH_OTP_EXPIRED': 'AUTH_OTP_EXPIRED',
+    'AUTH_OTP_TOO_MANY_ATTEMPTS': 'AUTH_OTP_TOO_MANY_ATTEMPTS',
+    'AUTH_OTP_RATE_LIMITED': 'AUTH_OTP_RATE_LIMITED',
+    'AUTH_OTP_DELIVERY_UNAVAILABLE': 'AUTH_OTP_DELIVERY_UNAVAILABLE',
+    'AUTH_SESSION_REVOKED': 'AUTH_SESSION_REVOKED',
+    'AUTH_ACCOUNT_INACTIVE': 'AUTH_ACCOUNT_INACTIVE',
+    'AUTH_WEAK_PASSWORD': 'AUTH_WEAK_PASSWORD',
+    'STAFF_IDENTITY_TAKEN': 'STAFF_IDENTITY_TAKEN',
+    'OFFICE_CODE_TAKEN': 'OFFICE_CODE_TAKEN',
+    'ROSTER_WORKER_TAKEN': 'ROSTER_WORKER_TAKEN',
+    'ASSIGNMENT_EXISTS': 'ASSIGNMENT_EXISTS',
+    'HOLIDAY_DATE_TAKEN': 'HOLIDAY_DATE_TAKEN',
+    'LEAVE_OVERLAP': 'LEAVE_OVERLAP',
+    'REGULARIZATION_EXISTS': 'REGULARIZATION_EXISTS',
+    'WARD_CODE_TAKEN': 'WARD_CODE_TAKEN',
+    'INVALID_BOUNDARY': 'INVALID_BOUNDARY',
+    'OUTSIDE_WARD': 'OUTSIDE_WARD',
+    'NO_ASSIGNMENT': 'NO_ASSIGNMENT',
+    'ASSIGNMENT_NOT_APPROVED': 'ASSIGNMENT_NOT_APPROVED',
+    'OUTSIDE_GEOFENCE': 'OUTSIDE_GEOFENCE',
+    'LOCATION_TOO_INACCURATE': 'LOCATION_TOO_INACCURATE',
+    'OUTSIDE_SHIFT_WINDOW': 'OUTSIDE_SHIFT_WINDOW',
+    'ALREADY_CHECKED_IN': 'ALREADY_CHECKED_IN',
+    'ALREADY_CHECKED_OUT': 'ALREADY_CHECKED_OUT',
+    'NOT_CHECKED_IN': 'NOT_CHECKED_IN',
+    'ON_LEAVE': 'ON_LEAVE',
+    'CHALLENGE_INVALID': 'CHALLENGE_INVALID',
+    'CHALLENGE_EXPIRED': 'CHALLENGE_EXPIRED',
+    'FACE_MISMATCH': 'FACE_MISMATCH',
+    'FACE_PROVIDER_UNAVAILABLE': 'FACE_PROVIDER_UNAVAILABLE',
+    'FACE_NOT_ENROLLED': 'FACE_NOT_ENROLLED',
+    'AADHAAR_CAPTURE_FAILED': 'AADHAAR_CAPTURE_FAILED',
+    'AADHAAR_IDENTITY_MISSING': 'AADHAAR_IDENTITY_MISSING',
+  };
+  static const Map<Object, String> _fromWire = const <Object, String>{
+    'VALIDATION_FAILED': 'VALIDATION_FAILED',
+    'UNAUTHENTICATED': 'UNAUTHENTICATED',
+    'FORBIDDEN': 'FORBIDDEN',
+    'NOT_FOUND': 'NOT_FOUND',
+    'CONFLICT': 'CONFLICT',
+    'VERSION_CONFLICT': 'VERSION_CONFLICT',
+    'PAYLOAD_TOO_LARGE': 'PAYLOAD_TOO_LARGE',
+    'RULE_VIOLATION': 'RULE_VIOLATION',
+    'RATE_LIMITED': 'RATE_LIMITED',
+    'HTTP_ERROR': 'HTTP_ERROR',
+    'SERVICE_UNAVAILABLE': 'SERVICE_UNAVAILABLE',
+    'INTERNAL_ERROR': 'INTERNAL_ERROR',
+    'AUTH_INVALID_CREDENTIALS': 'AUTH_INVALID_CREDENTIALS',
+    'AUTH_OTP_INVALID': 'AUTH_OTP_INVALID',
+    'AUTH_OTP_EXPIRED': 'AUTH_OTP_EXPIRED',
+    'AUTH_OTP_TOO_MANY_ATTEMPTS': 'AUTH_OTP_TOO_MANY_ATTEMPTS',
+    'AUTH_OTP_RATE_LIMITED': 'AUTH_OTP_RATE_LIMITED',
+    'AUTH_OTP_DELIVERY_UNAVAILABLE': 'AUTH_OTP_DELIVERY_UNAVAILABLE',
+    'AUTH_SESSION_REVOKED': 'AUTH_SESSION_REVOKED',
+    'AUTH_ACCOUNT_INACTIVE': 'AUTH_ACCOUNT_INACTIVE',
+    'AUTH_WEAK_PASSWORD': 'AUTH_WEAK_PASSWORD',
+    'STAFF_IDENTITY_TAKEN': 'STAFF_IDENTITY_TAKEN',
+    'OFFICE_CODE_TAKEN': 'OFFICE_CODE_TAKEN',
+    'ROSTER_WORKER_TAKEN': 'ROSTER_WORKER_TAKEN',
+    'ASSIGNMENT_EXISTS': 'ASSIGNMENT_EXISTS',
+    'HOLIDAY_DATE_TAKEN': 'HOLIDAY_DATE_TAKEN',
+    'LEAVE_OVERLAP': 'LEAVE_OVERLAP',
+    'REGULARIZATION_EXISTS': 'REGULARIZATION_EXISTS',
+    'WARD_CODE_TAKEN': 'WARD_CODE_TAKEN',
+    'INVALID_BOUNDARY': 'INVALID_BOUNDARY',
+    'OUTSIDE_WARD': 'OUTSIDE_WARD',
+    'NO_ASSIGNMENT': 'NO_ASSIGNMENT',
+    'ASSIGNMENT_NOT_APPROVED': 'ASSIGNMENT_NOT_APPROVED',
+    'OUTSIDE_GEOFENCE': 'OUTSIDE_GEOFENCE',
+    'LOCATION_TOO_INACCURATE': 'LOCATION_TOO_INACCURATE',
+    'OUTSIDE_SHIFT_WINDOW': 'OUTSIDE_SHIFT_WINDOW',
+    'ALREADY_CHECKED_IN': 'ALREADY_CHECKED_IN',
+    'ALREADY_CHECKED_OUT': 'ALREADY_CHECKED_OUT',
+    'NOT_CHECKED_IN': 'NOT_CHECKED_IN',
+    'ON_LEAVE': 'ON_LEAVE',
+    'CHALLENGE_INVALID': 'CHALLENGE_INVALID',
+    'CHALLENGE_EXPIRED': 'CHALLENGE_EXPIRED',
+    'FACE_MISMATCH': 'FACE_MISMATCH',
+    'FACE_PROVIDER_UNAVAILABLE': 'FACE_PROVIDER_UNAVAILABLE',
+    'FACE_NOT_ENROLLED': 'FACE_NOT_ENROLLED',
+    'AADHAAR_CAPTURE_FAILED': 'AADHAAR_CAPTURE_FAILED',
+    'AADHAAR_IDENTITY_MISSING': 'AADHAAR_IDENTITY_MISSING',
+  };
+
+  @override
+  final Iterable<Type> types = const <Type>[ErrorCode];
+  @override
+  final String wireName = 'ErrorCode';
+
+  @override
+  Object serialize(Serializers serializers, ErrorCode object,
+          {FullType specifiedType = FullType.unspecified}) =>
+      _toWire[object.name] ?? object.name;
+
+  @override
+  ErrorCode deserialize(Serializers serializers, Object serialized,
+          {FullType specifiedType = FullType.unspecified}) =>
+      ErrorCode.valueOf(
+          _fromWire[serialized] ?? (serialized is String ? serialized : ''));
+}
+
+// ignore_for_file: deprecated_member_use_from_same_package,type=lint

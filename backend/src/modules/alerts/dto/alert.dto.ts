@@ -59,14 +59,14 @@ export class ListAlertsQueryDto {
   @IsISO8601({ strict: true })
   to?: string;
 
-  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @ApiPropertyOptional({ type: 'integer', default: 1, minimum: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page = 1;
 
-  @ApiPropertyOptional({ default: 50, minimum: 1, maximum: 200 })
+  @ApiPropertyOptional({ type: 'integer', default: 50, minimum: 1, maximum: 200 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

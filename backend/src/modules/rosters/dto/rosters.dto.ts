@@ -13,14 +13,14 @@ const toBoolean = ({ value }: { value: unknown }) =>
   value === 'true' ? true : value === 'false' ? false : value;
 
 class PageQueryDto {
-  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @ApiPropertyOptional({ type: 'integer', default: 1, minimum: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page = 1;
 
-  @ApiPropertyOptional({ default: 50, minimum: 1, maximum: 500 })
+  @ApiPropertyOptional({ type: 'integer', default: 50, minimum: 1, maximum: 500 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

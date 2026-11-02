@@ -1,0 +1,193 @@
+{
+  "$comment": "One message table for every API error code (web and mobile). Edit here, then run npm run api:clients. A backend test checks every ErrorCode has en and mr.",
+  "messages": {
+    "VALIDATION_FAILED": {
+      "en": "The request is not valid",
+      "mr": "विनंती योग्य नाही; माहिती तपासून पुन्हा प्रयत्न करा"
+    },
+    "UNAUTHENTICATED": {
+      "en": "Please sign in again",
+      "mr": "कृपया पुन्हा साइन इन करा"
+    },
+    "FORBIDDEN": {
+      "en": "You are not allowed to do this",
+      "mr": "तुम्हाला हे करण्याची परवानगी नाही"
+    },
+    "NOT_FOUND": {
+      "en": "Not found",
+      "mr": "माहिती सापडली नाही"
+    },
+    "CONFLICT": {
+      "en": "This conflicts with existing data",
+      "mr": "हे आधीच्या माहितीशी जुळत नाही"
+    },
+    "VERSION_CONFLICT": {
+      "en": "Someone else changed this record; reload and try again",
+      "mr": "दुसऱ्या कोणीतरी ही नोंद बदलली आहे; पान रीलोड करून पुन्हा प्रयत्न करा"
+    },
+    "PAYLOAD_TOO_LARGE": {
+      "en": "The upload is too large",
+      "mr": "अपलोड खूप मोठा आहे"
+    },
+    "RULE_VIOLATION": {
+      "en": "This breaks a business rule",
+      "mr": "हे नियमांनुसार करता येत नाही"
+    },
+    "RATE_LIMITED": {
+      "en": "Too many requests; try again shortly",
+      "mr": "खूप जास्त विनंत्या; थोड्या वेळाने पुन्हा प्रयत्न करा"
+    },
+    "HTTP_ERROR": {
+      "en": "The request could not be completed",
+      "mr": "विनंती पूर्ण होऊ शकली नाही"
+    },
+    "SERVICE_UNAVAILABLE": {
+      "en": "The service is not ready",
+      "mr": "सेवा सध्या उपलब्ध नाही"
+    },
+    "INTERNAL_ERROR": {
+      "en": "Something went wrong on the server",
+      "mr": "सर्व्हरवर काहीतरी चूक झाली"
+    },
+    "AUTH_INVALID_CREDENTIALS": {
+      "en": "Wrong employee code / phone or password",
+      "mr": "कर्मचारी कोड / फोन किंवा पासवर्ड चुकीचा आहे"
+    },
+    "AUTH_OTP_INVALID": {
+      "en": "The code is not correct; check the SMS and try again",
+      "mr": "कोड चुकीचा आहे; SMS तपासून पुन्हा प्रयत्न करा"
+    },
+    "AUTH_OTP_EXPIRED": {
+      "en": "The code has expired; request a new one",
+      "mr": "कोडची मुदत संपली; नवीन कोड मागवा"
+    },
+    "AUTH_OTP_TOO_MANY_ATTEMPTS": {
+      "en": "Too many wrong codes; request a new one",
+      "mr": "खूप वेळा चुकीचा कोड टाकला; नवीन कोड मागवा"
+    },
+    "AUTH_OTP_RATE_LIMITED": {
+      "en": "Too many codes requested; wait 15 minutes",
+      "mr": "खूप कोड मागवले; १५ मिनिटे थांबा"
+    },
+    "AUTH_OTP_DELIVERY_UNAVAILABLE": {
+      "en": "SMS sign-in codes cannot be sent right now",
+      "mr": "सध्या SMS कोड पाठवता येत नाहीत"
+    },
+    "AUTH_SESSION_REVOKED": {
+      "en": "You were signed out; please sign in again",
+      "mr": "तुम्हाला साइन आउट केले आहे; कृपया पुन्हा साइन इन करा"
+    },
+    "AUTH_ACCOUNT_INACTIVE": {
+      "en": "This account is deactivated",
+      "mr": "हे खाते निष्क्रिय केले आहे"
+    },
+    "AUTH_WEAK_PASSWORD": {
+      "en": "Choose a stronger password",
+      "mr": "अधिक मजबूत पासवर्ड निवडा"
+    },
+    "STAFF_IDENTITY_TAKEN": {
+      "en": "Another staff member already has this phone or employee code",
+      "mr": "हा फोन किंवा कर्मचारी कोड दुसऱ्या कर्मचाऱ्याकडे आधीच आहे"
+    },
+    "OFFICE_CODE_TAKEN": {
+      "en": "An office with this code already exists",
+      "mr": "या कोडचे कार्यालय आधीच आहे"
+    },
+    "ROSTER_WORKER_TAKEN": {
+      "en": "This worker is already in a standing squad",
+      "mr": "हा कर्मचारी आधीच एका कायमस्वरूपी पथकात आहे"
+    },
+    "ASSIGNMENT_EXISTS": {
+      "en": "This person already has an assignment for that day",
+      "mr": "या व्यक्तीचे त्या दिवसाचे काम आधीच ठरलेले आहे"
+    },
+    "HOLIDAY_DATE_TAKEN": {
+      "en": "There is already a holiday on this date",
+      "mr": "या तारखेला आधीच सुट्टी आहे"
+    },
+    "LEAVE_OVERLAP": {
+      "en": "You already have pending or approved leave on these dates",
+      "mr": "या तारखांना तुमची रजा आधीच प्रलंबित किंवा मंजूर आहे"
+    },
+    "REGULARIZATION_EXISTS": {
+      "en": "A regularization request for this day is already open or approved",
+      "mr": "या दिवसासाठी नियमितीकरणाची विनंती आधीच खुली किंवा मंजूर आहे"
+    },
+    "WARD_CODE_TAKEN": {
+      "en": "A ward with this code already exists",
+      "mr": "या कोडचा प्रभाग आधीच आहे"
+    },
+    "INVALID_BOUNDARY": {
+      "en": "The ward boundary is not a valid polygon",
+      "mr": "प्रभागाची सीमा योग्य बहुभुज नाही"
+    },
+    "OUTSIDE_WARD": {
+      "en": "Location is outside the assigned ward",
+      "mr": "ठिकाण नेमलेल्या प्रभागाबाहेर आहे"
+    },
+    "NO_ASSIGNMENT": {
+      "en": "No ward assignment for this shift",
+      "mr": "या शिफ्टसाठी प्रभाग नेमलेला नाही"
+    },
+    "ASSIGNMENT_NOT_APPROVED": {
+      "en": "Your assignment for today is waiting for approval",
+      "mr": "तुमचे आजचे काम मंजुरीच्या प्रतीक्षेत आहे"
+    },
+    "OUTSIDE_GEOFENCE": {
+      "en": "You are outside your ward or office; move inside and try again",
+      "mr": "तुम्ही तुमच्या प्रभाग किंवा कार्यालयाबाहेर आहात; आत जाऊन पुन्हा प्रयत्न करा"
+    },
+    "LOCATION_TOO_INACCURATE": {
+      "en": "GPS is not accurate enough yet; wait a moment in the open and try again",
+      "mr": "GPS अजून पुरेसे अचूक नाही; मोकळ्या जागी थोडा वेळ थांबून पुन्हा प्रयत्न करा"
+    },
+    "OUTSIDE_SHIFT_WINDOW": {
+      "en": "Check-in is not open for your shift now",
+      "mr": "तुमच्या शिफ्टसाठी आत्ता हजेरी सुरू नाही"
+    },
+    "ALREADY_CHECKED_IN": {
+      "en": "Already checked in for this shift",
+      "mr": "या शिफ्टसाठी हजेरी आधीच लावली आहे"
+    },
+    "ALREADY_CHECKED_OUT": {
+      "en": "Already checked out for this shift",
+      "mr": "या शिफ्टसाठी आधीच बाहेर पडल्याची नोंद आहे"
+    },
+    "NOT_CHECKED_IN": {
+      "en": "Check in before checking out",
+      "mr": "बाहेर पडण्यापूर्वी हजेरी लावा"
+    },
+    "ON_LEAVE": {
+      "en": "You are on approved leave today",
+      "mr": "आज तुमची रजा मंजूर आहे"
+    },
+    "CHALLENGE_INVALID": {
+      "en": "The face check is not valid; start the face check again",
+      "mr": "चेहरा तपासणी वैध नाही; पुन्हा सुरू करा"
+    },
+    "CHALLENGE_EXPIRED": {
+      "en": "The face check took too long; start it again",
+      "mr": "चेहरा तपासणीला खूप वेळ लागला; पुन्हा सुरू करा"
+    },
+    "FACE_MISMATCH": {
+      "en": "The face did not match; try again",
+      "mr": "चेहरा जुळला नाही; पुन्हा प्रयत्न करा"
+    },
+    "FACE_PROVIDER_UNAVAILABLE": {
+      "en": "Face verification is temporarily unavailable",
+      "mr": "चेहरा पडताळणी तात्पुरती उपलब्ध नाही"
+    },
+    "FACE_NOT_ENROLLED": {
+      "en": "No enrolled face for this person; ask an administrator to enrol you",
+      "mr": "या व्यक्तीचा चेहरा नोंदवलेला नाही; प्रशासकाकडून नोंदणी करून घ्या"
+    },
+    "AADHAAR_CAPTURE_FAILED": {
+      "en": "Aadhaar face capture failed; try again",
+      "mr": "आधार चेहरा कॅप्चर अयशस्वी; पुन्हा प्रयत्न करा"
+    },
+    "AADHAAR_IDENTITY_MISSING": {
+      "en": "This person is not linked for Aadhaar face authentication",
+      "mr": "ही व्यक्ती आधार चेहरा पडताळणीसाठी जोडलेली नाही"
+    }
+  }
+}

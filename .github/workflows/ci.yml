@@ -98,8 +98,10 @@ jobs:
           path: openapi
       - name: Install
         run: if [ -f package-lock.json ]; then npm ci; else npm install; fi
-      - name: Regenerate API types
-        run: npm run api:types
+      - name: Regenerate API types and the error message table
+        run: |
+          npm run api:types
+          cp ../../openapi/error-messages.json src/api/generated/error-messages.json
       - name: Generated client is committed and current
         run: git diff --exit-code src/api/generated || (echo "Run 'npm run api:sync' and commit the generated client" && exit 1)
       - name: Typecheck
@@ -109,7 +111,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          NEXT_PUBLIC_API_BASE_URL: http://localhost:3000
+          API_INTERNAL_URL: http://localhost:3000
 
   mobile-client:
     name: Mobile - generate Dart API client

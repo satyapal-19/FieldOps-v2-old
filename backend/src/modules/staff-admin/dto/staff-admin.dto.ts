@@ -189,14 +189,14 @@ export class ListStaffQueryDto {
   @Length(1, 50)
   q?: string;
 
-  @ApiPropertyOptional({ default: 1, minimum: 1 })
+  @ApiPropertyOptional({ type: 'integer', default: 1, minimum: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page = 1;
 
-  @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({ type: 'integer', default: 20, minimum: 1, maximum: 100 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
