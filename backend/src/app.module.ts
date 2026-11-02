@@ -7,6 +7,7 @@ import { HolidaysModule } from './modules/holidays/holidays.module';
 import { LeaveModule } from './modules/leave/leave.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { ComplaintsModule } from './modules/complaints/complaints.module';
+import { AlertsModule } from './modules/alerts/alerts.module';
 import { OfficesModule } from './modules/offices/offices.module';
 import { RostersModule } from './modules/rosters/rosters.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
@@ -39,6 +40,7 @@ import { SharedModule } from './shared/shared.module';
     LeaveModule,
     TasksModule,
     ComplaintsModule,
+    AlertsModule,
     FaceModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor }],
