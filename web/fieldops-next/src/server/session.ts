@@ -38,17 +38,19 @@ export function forwardHeaders(req: NextRequest): Headers {
     const value = req.headers.get(name);
     if (value) out.set(name, value);
   }
-  // Rate limits and audit rows need the browser's address, not this server's (TRUST_PROXY).
+  // Rate limits and audit rows need the browser's address, which IIS appends to
+  // X-Forwarded-For. The API trusts it only from proxies on this machine (TRUST_PROXY=loopback),
+  // and this server listens on 127.0.0.1 in production, so only IIS can supply it.
   const forwarded = req.headers.get('x-forwarded-for');
-  const realIp = req.headers.get('x-real-ip');
-  if (forwarded || realIp) out.set('x-forwarded-for', forwarded ?? realIp ?? '');
+  if (forwarded) out.set('x-forwarded-for', forwarded);
   if (!out.has('x-request-id')) out.set('x-request-id', crypto.randomUUID());
   return out;
 }
 
 // Refresh tokens rotate and a reused one revokes the whole session, so requests that arrive
 // together with the same old token must share one refresh. The result is kept briefly for
-// requests that were already in flight with the old cookie.
+// requests that were already in flight with the old cookie. This map lives in one process:
+// the web server runs as a single instance (it only forwards; the API is what scales).
 const REFRESH_SHARE_MS = 30_000;
 const inflight = new Map<string, Promise<SessionTokens | null>>();
 

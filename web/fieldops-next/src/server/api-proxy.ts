@@ -44,6 +44,21 @@ export function sameSiteWrite(req: NextRequest): boolean {
   }
 }
 
+/** The only auth/* calls pages may make; sign-in, OTP, refresh and logout return or end tokens. */
+const AUTH_ALLOWED = [/^auth\/me$/, /^auth\/change-password$/, /^auth\/staff\/[0-9a-f-]{36}\/revoke-sessions$/i];
+
+/**
+ * Whether a page may call this API path through the pass-through. Token-issuing auth routes
+ * are refused so a token never reaches page scripts (sign-in goes through /session/*), and
+ * dot segments are refused so a path cannot be normalised into one of them.
+ */
+export function proxyAllowed(path: readonly string[]): boolean {
+  if (path.length === 0 || path.some((s) => s === '' || s === '.' || s === '..')) return false;
+  const joined = path.join('/');
+  if (path[0].toLowerCase() !== 'auth') return true;
+  return AUTH_ALLOWED.some((rule) => rule.test(joined));
+}
+
 /**
  * Forwards /api/v1/<path> to the NestJS API with the bearer token from the session cookie,
  * refreshing it when it is about to expire or the API answers 401. Only the API decides
@@ -52,6 +67,9 @@ export function sameSiteWrite(req: NextRequest): boolean {
 export async function proxyToApi(req: NextRequest, path: string[]): Promise<NextResponse> {
   const headers = forwardHeaders(req);
   const requestId = headers.get('x-request-id') ?? '';
+  if (!proxyAllowed(path)) {
+    return problem(404, 'NOT_FOUND', 'Not found', requestId);
+  }
   if (!sameSiteWrite(req)) {
     return problem(403, 'FORBIDDEN', 'Cross-site request refused', requestId);
   }
