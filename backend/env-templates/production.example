@@ -44,8 +44,10 @@ OTP_MAX_PER_15_MIN=3
 # SMS_TIMEOUT_MS=8000
 RATE_LIMIT_PER_MINUTE=300
 SIGN_IN_RATE_LIMIT_PER_MINUTE=30
-# Behind IIS (ARR reverse proxy) set to 1 so audit rows and rate limits see client IPs.
-TRUST_PROXY=1
+# Behind IIS (ARR reverse proxy), with Next.js also on this server: trust only proxies on this
+# machine, so the mobile path (IIS -> API) and the web path (IIS -> Next.js -> API) both give
+# the real client address to audit rows and rate limits, and a client cannot fake it.
+TRUST_PROXY=loopback
 
 # Scheduled jobs: auto-checkout, silent-gap detection, nightly roll-ups, retention purge.
 # Safe on every PM2 instance: a database lock makes each run happen once.

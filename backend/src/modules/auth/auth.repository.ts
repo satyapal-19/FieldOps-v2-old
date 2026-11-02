@@ -39,9 +39,17 @@ export class AuthRepository {
     await this.otpRepo(tx).insert(otp);
   }
 
-  /** Counts a wrong guess; conditional on the value read so concurrent guesses all count. */
-  async incrementOtpAttempts(id: string, seenAttempts: number): Promise<number> {
-    const result = await this.otps.update({ id, attempts: seenAttempts }, { attempts: seenAttempts + 1 });
+  /**
+   * Claims one guess before the code is compared: a single atomic `attempts = attempts + 1`
+   * that only succeeds while the code is unused and under the limit. Returns 0 when no guess
+   * is left, so parallel guesses each use up one attempt (never more than `maxAttempts`).
+   */
+  async claimOtpAttempt(id: string, maxAttempts: number): Promise<number> {
+    const result = await this.otps.increment(
+      { id, attempts: LessThan(maxAttempts), consumedAt: IsNull() },
+      'attempts',
+      1,
+    );
     return result.affected ?? 0;
   }
 

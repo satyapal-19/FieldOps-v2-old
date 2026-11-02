@@ -163,7 +163,11 @@ const schema = Joi.object<Env>({
     .min(1)
     .when('NODE_ENV', { is: 'test', then: Joi.number().default(100000), otherwise: Joi.number().default(30) }),
   // Behind IIS / a reverse proxy set to the number of proxy hops (e.g. 1), so client IPs are real.
-  TRUST_PROXY: Joi.string().pattern(/^(false|true|\d{1,2})$/).default('false'),
+  // false | true | a hop count | Express address names (e.g. loopback: trust only proxies on
+  // this machine, so IIS -> API and IIS -> Next.js -> API both resolve the real client).
+  TRUST_PROXY: Joi.string()
+    .pattern(/^(false|true|\d{1,2}|(loopback|linklocal|uniquelocal)(,(loopback|linklocal|uniquelocal))*)$/)
+    .default('false'),
 
   // Scheduled jobs. Tests run them directly with a frozen clock, so they are off there.
   JOBS_ENABLED: Joi.boolean().when('NODE_ENV', {
@@ -215,9 +219,14 @@ export function validateEnv(raw: Record<string, unknown>): Env {
     convert: true,
     stripUnknown: true,
   });
-  if (error) {
-    const problems = error.details.map((d) => `- ${d.message}`).join('\n');
-    throw new Error(`Invalid environment configuration:\n${problems}`);
+  const problems = error ? error.details.map((d) => `- ${d.message}`) : [];
+  const env = value as Env;
+  // One leaked secret must not forge both kinds of token (the OTP HMAC also uses the refresh one).
+  if (env.NODE_ENV === 'production' && env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
+    problems.push('- JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different in production');
   }
-  return value as Env;
+  if (problems.length > 0) {
+    throw new Error(`Invalid environment configuration:\n${problems.join('\n')}`);
+  }
+  return env;
 }

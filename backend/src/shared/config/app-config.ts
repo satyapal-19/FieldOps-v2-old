@@ -109,11 +109,12 @@ export class AppConfig {
   }
 
   /** Express 'trust proxy' value: false, true or a hop count. */
-  get trustProxy(): boolean | number {
+  /** Express `trust proxy`: true / false, a hop count, or address names such as 'loopback'. */
+  get trustProxy(): boolean | number | string {
     const raw = this.config.get('TRUST_PROXY', { infer: true });
     if (raw === 'true') return true;
     if (raw === 'false') return false;
-    return Number(raw);
+    return /^\d+$/.test(raw) ? Number(raw) : raw;
   }
 
   get faceProvider(): FaceProvider {

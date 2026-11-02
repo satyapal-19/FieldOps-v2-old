@@ -117,6 +117,19 @@ describe('Auth and roles (e2e)', () => {
       const res = await http.post('/api/v1/auth/otp/verify').send({ phone: otherWorker.phone, code }).expect(429);
       expect(res.body.code).toBe('AUTH_OTP_TOO_MANY_ATTEMPTS');
     });
+
+    it('counts parallel guesses one by one (no extra tries by racing)', async () => {
+      await http.post('/api/v1/auth/otp/request').send({ phone: worker.phone }).expect(202);
+      const code = t.otp.lastCodeFor(worker.phone)!;
+      const wrong = code === '000000' ? '111111' : '000000';
+      const results = await Promise.all(
+        Array.from({ length: 12 }, () => http.post('/api/v1/auth/otp/verify').send({ phone: worker.phone, code: wrong })),
+      );
+      const statuses = results.map((r) => r.status);
+      expect(statuses.filter((s) => s === 401)).toHaveLength(5);
+      expect(statuses.filter((s) => s === 429)).toHaveLength(7);
+      await http.post('/api/v1/auth/otp/verify').send({ phone: worker.phone, code }).expect(429);
+    });
   });
 
   describe('password sign-in', () => {

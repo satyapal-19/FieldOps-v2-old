@@ -8,6 +8,7 @@ const base = {
 };
 
 const strongSecret = 'x'.repeat(32);
+const otherSecret = 'y'.repeat(32);
 
 describe('validateEnv', () => {
   it('applies defaults and converts types in development', () => {
@@ -35,7 +36,7 @@ describe('validateEnv', () => {
         CORS_ORIGINS: 'https://fieldops.example',
         AUTH_TEST_LOGIN_ENABLED: 'true',
         JWT_ACCESS_SECRET: strongSecret,
-        JWT_REFRESH_SECRET: strongSecret,
+        JWT_REFRESH_SECRET: otherSecret,
       }),
     ).toThrow(/AUTH_TEST_LOGIN_ENABLED must be false in production/);
   });
@@ -58,7 +59,7 @@ describe('validateEnv', () => {
       NODE_ENV: 'production',
       CORS_ORIGINS: 'https://fieldops.example',
       JWT_ACCESS_SECRET: strongSecret,
-      JWT_REFRESH_SECRET: strongSecret,
+      JWT_REFRESH_SECRET: otherSecret,
     });
     expect(env.SWAGGER_ENABLED).toBe(false);
     expect(env.AUTH_TEST_LOGIN_ENABLED).toBe(false);
@@ -97,6 +98,27 @@ describe('validateEnv', () => {
     );
   });
 
+  it('accepts TRUST_PROXY as a flag, a hop count or address names', () => {
+    for (const v of ['false', 'true', '2', 'loopback', 'loopback,uniquelocal']) {
+      expect(validateEnv({ ...base, NODE_ENV: 'development', TRUST_PROXY: v }).TRUST_PROXY).toBe(v);
+    }
+    expect(() => validateEnv({ ...base, NODE_ENV: 'development', TRUST_PROXY: '0.0.0.0/0' })).toThrow(
+      /TRUST_PROXY/,
+    );
+  });
+
+  it('refuses the same access and refresh secret in production', () => {
+    expect(() =>
+      validateEnv({
+        ...base,
+        NODE_ENV: 'production',
+        CORS_ORIGINS: 'https://fieldops.example',
+        JWT_ACCESS_SECRET: strongSecret,
+        JWT_REFRESH_SECRET: strongSecret,
+      }),
+    ).toThrow(/must be different in production/);
+  });
+
   it('allows a seed web password only outside production', () => {
     const pw = 'seed-pass-1234';
     expect(validateEnv({ ...base, NODE_ENV: 'development', SEED_WEB_PASSWORD: pw }).SEED_WEB_PASSWORD).toBe(pw);
@@ -110,7 +132,7 @@ describe('validateEnv', () => {
         NODE_ENV: 'production',
         CORS_ORIGINS: 'https://fieldops.example',
         JWT_ACCESS_SECRET: strongSecret,
-        JWT_REFRESH_SECRET: strongSecret,
+        JWT_REFRESH_SECRET: otherSecret,
         SEED_WEB_PASSWORD: pw,
       }),
     ).toThrow(/not allowed in production/);
@@ -126,7 +148,7 @@ describe('validateEnv', () => {
       NODE_ENV: 'production',
       CORS_ORIGINS: 'https://fieldops.example',
       JWT_ACCESS_SECRET: strongSecret,
-      JWT_REFRESH_SECRET: strongSecret,
+      JWT_REFRESH_SECRET: otherSecret,
     };
 
     it('logs codes in development and is disabled by default in production', () => {

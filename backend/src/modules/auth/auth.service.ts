@@ -141,8 +141,11 @@ export class AuthService {
     if (state === 'too_many_attempts') throw new AppError(ErrorCode.AUTH_OTP_TOO_MANY_ATTEMPTS);
     if (state === 'consumed') throw new AppError(ErrorCode.AUTH_OTP_INVALID);
 
+    // Every guess, right or wrong, spends an attempt first, atomically.
+    if ((await this.repo.claimOtpAttempt(otp.id, settings.otpMaxAttempts)) === 0) {
+      throw new AppError(ErrorCode.AUTH_OTP_TOO_MANY_ATTEMPTS);
+    }
     if (!sameHash(otp.codeHash, this.otpHash(phone, code))) {
-      await this.repo.incrementOtpAttempts(otp.id, otp.attempts);
       const attemptsLeft = Math.max(0, settings.otpMaxAttempts - otp.attempts - 1);
       await this.auditFailure(otp.staffId, 'OTP', 'wrong code');
       throw new AppError(ErrorCode.AUTH_OTP_INVALID, undefined, { attemptsLeft });
