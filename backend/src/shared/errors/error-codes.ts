@@ -35,6 +35,9 @@ export enum ErrorCode {
   ROSTER_WORKER_TAKEN = 'ROSTER_WORKER_TAKEN',
   ASSIGNMENT_EXISTS = 'ASSIGNMENT_EXISTS',
 
+  // Calendar
+  HOLIDAY_DATE_TAKEN = 'HOLIDAY_DATE_TAKEN',
+
   // Wards
   WARD_CODE_TAKEN = 'WARD_CODE_TAKEN',
   INVALID_BOUNDARY = 'INVALID_BOUNDARY',
@@ -111,6 +114,8 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
     status: 409,
     title: 'This person already has an assignment for that day',
   },
+
+  [ErrorCode.HOLIDAY_DATE_TAKEN]: { status: 409, title: 'There is already a holiday on this date' },
 
   [ErrorCode.WARD_CODE_TAKEN]: { status: 409, title: 'A ward with this code already exists' },
   [ErrorCode.INVALID_BOUNDARY]: { status: 422, title: 'The ward boundary is not a valid polygon' },

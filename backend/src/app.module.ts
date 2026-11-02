@@ -3,6 +3,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { FaceModule } from './modules/face/face.module';
+import { HolidaysModule } from './modules/holidays/holidays.module';
 import { OfficesModule } from './modules/offices/offices.module';
 import { RostersModule } from './modules/rosters/rosters.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
@@ -31,6 +32,7 @@ import { SharedModule } from './shared/shared.module';
     OfficesModule,
     RostersModule,
     ShiftsModule,
+    HolidaysModule,
     FaceModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor }],
