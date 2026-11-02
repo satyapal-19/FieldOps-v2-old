@@ -45,6 +45,20 @@ export enum ErrorCode {
   INVALID_BOUNDARY = 'INVALID_BOUNDARY',
   OUTSIDE_WARD = 'OUTSIDE_WARD',
 
+  // Attendance
+  NO_ASSIGNMENT = 'NO_ASSIGNMENT',
+  ASSIGNMENT_NOT_APPROVED = 'ASSIGNMENT_NOT_APPROVED',
+  OUTSIDE_GEOFENCE = 'OUTSIDE_GEOFENCE',
+  LOCATION_TOO_INACCURATE = 'LOCATION_TOO_INACCURATE',
+  OUTSIDE_SHIFT_WINDOW = 'OUTSIDE_SHIFT_WINDOW',
+  ALREADY_CHECKED_IN = 'ALREADY_CHECKED_IN',
+  ALREADY_CHECKED_OUT = 'ALREADY_CHECKED_OUT',
+  NOT_CHECKED_IN = 'NOT_CHECKED_IN',
+  ON_LEAVE = 'ON_LEAVE',
+  CHALLENGE_INVALID = 'CHALLENGE_INVALID',
+  CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED',
+  FACE_MISMATCH = 'FACE_MISMATCH',
+
   // Face verification
   FACE_PROVIDER_UNAVAILABLE = 'FACE_PROVIDER_UNAVAILABLE',
   FACE_NOT_ENROLLED = 'FACE_NOT_ENROLLED',
@@ -130,6 +144,37 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
   [ErrorCode.WARD_CODE_TAKEN]: { status: 409, title: 'A ward with this code already exists' },
   [ErrorCode.INVALID_BOUNDARY]: { status: 422, title: 'The ward boundary is not a valid polygon' },
   [ErrorCode.OUTSIDE_WARD]: { status: 422, title: 'Location is outside the assigned ward' },
+
+  [ErrorCode.NO_ASSIGNMENT]: { status: 422, title: 'No ward assignment for this shift' },
+  [ErrorCode.ASSIGNMENT_NOT_APPROVED]: {
+    status: 422,
+    title: 'Your assignment for today is waiting for approval',
+  },
+  [ErrorCode.OUTSIDE_GEOFENCE]: {
+    status: 422,
+    title: 'You are outside your ward or office; move inside and try again',
+  },
+  [ErrorCode.LOCATION_TOO_INACCURATE]: {
+    status: 422,
+    title: 'GPS is not accurate enough yet; wait a moment in the open and try again',
+  },
+  [ErrorCode.OUTSIDE_SHIFT_WINDOW]: {
+    status: 422,
+    title: 'Check-in is not open for your shift now',
+  },
+  [ErrorCode.ALREADY_CHECKED_IN]: { status: 409, title: 'Already checked in for this shift' },
+  [ErrorCode.ALREADY_CHECKED_OUT]: { status: 409, title: 'Already checked out for this shift' },
+  [ErrorCode.NOT_CHECKED_IN]: { status: 422, title: 'Check in before checking out' },
+  [ErrorCode.ON_LEAVE]: { status: 422, title: 'You are on approved leave today' },
+  [ErrorCode.CHALLENGE_INVALID]: {
+    status: 422,
+    title: 'The face check is not valid; start the face check again',
+  },
+  [ErrorCode.CHALLENGE_EXPIRED]: {
+    status: 422,
+    title: 'The face check took too long; start it again',
+  },
+  [ErrorCode.FACE_MISMATCH]: { status: 422, title: 'The face did not match; try again' },
 
   [ErrorCode.FACE_PROVIDER_UNAVAILABLE]: {
     status: 503,
