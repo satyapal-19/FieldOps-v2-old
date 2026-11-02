@@ -11,6 +11,7 @@ import {
   geofenceResult,
   isOutOfZone,
   isRepeatedLate,
+  logForPing,
   lateMark,
   LIVENESS_ACTIONS,
   pickActions,
@@ -22,6 +23,7 @@ import {
   punchPlace,
   PunchSubject,
   statusAtCheckout,
+  tamperSeverity,
   workedMinutes,
 } from './attendance.policy';
 
@@ -468,5 +470,42 @@ describe('attendanceScope', () => {
     [Role.OFFICE_STAFF, null, { kind: 'SELF', staffId: 'me' }],
   ])('%s', (role, ward, expected) => {
     expect(attendanceScope(user(role, 'me', ward))).toEqual(expected);
+  });
+});
+
+describe('logForPing and tamperSeverity', () => {
+  const logs = [
+    {
+      id: 'night',
+      attendanceDate: '2026-11-01',
+      checkinAt: at('2026-11-01T16:30:00Z'),
+      checkoutAt: at('2026-11-02T00:30:00Z'),
+    },
+    {
+      id: 'day',
+      attendanceDate: '2026-11-02',
+      checkinAt: at('2026-11-02T03:00:00Z'),
+      checkoutAt: null,
+    },
+  ];
+  it.each([
+    ['during the night shift', '2026-11-01T20:00:00Z', 'night'],
+    ['at the night check-out', '2026-11-02T00:30:00Z', 'night'],
+    ['between shifts', '2026-11-02T01:00:00Z', null],
+    ['during the open day shift', '2026-11-02T05:00:00Z', 'day'],
+    ['before any check-in', '2026-11-01T10:00:00Z', null],
+  ])('%s', (_name, recorded, expected) => {
+    expect(logForPing(logs, at(recorded))?.id ?? null).toBe(expected);
+  });
+
+  it.each([
+    ['MOCK_LOCATION', 'HIGH'],
+    ['GPS_DISABLED', 'HIGH'],
+    ['PERMISSION_REVOKED', 'HIGH'],
+    ['AIRPLANE_MODE', 'MEDIUM'],
+    ['DEVICE_OFFLINE', 'MEDIUM'],
+    ['SILENT_GAP', 'MEDIUM'],
+  ] as const)('%s -> %s', (type, expected) => {
+    expect(tamperSeverity(type)).toBe(expected);
   });
 });

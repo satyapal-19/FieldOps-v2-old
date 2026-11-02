@@ -18,6 +18,7 @@ import { CurrentUser, Roles } from '../../shared/auth/decorators';
 import { Role, type StaffRole } from '../../shared/auth/roles';
 import { ProblemDetailsDto } from '../../shared/errors/problem-details.dto';
 import { AttendanceService } from './attendance.service';
+import { TrackingService } from './tracking.service';
 import {
   AttendanceLogDto,
   AttendancePageDto,
@@ -27,6 +28,12 @@ import {
   ListAttendanceQueryDto,
   PunchResultDto,
 } from './dto/attendance.dto';
+import {
+  PingBatchDto,
+  PingBatchResultDto,
+  TamperBatchDto,
+  TamperBatchResultDto,
+} from './dto/tracking.dto';
 
 const STAFF: StaffRole[] = [
   Role.ADMIN,
@@ -36,6 +43,9 @@ const STAFF: StaffRole[] = [
   Role.OFFICE_STAFF,
 ];
 
+/** People whose phone sends breadcrumbs while on duty. */
+const TRACKED: StaffRole[] = [Role.WARD_INSPECTOR, Role.INSPECTOR, Role.WORKER, Role.OFFICE_STAFF];
+
 /** HTTP only: maps requests to one service call. Every rule lives in attendance.policy. */
 @ApiTags('attendance')
 @ApiBearerAuth()
@@ -44,7 +54,10 @@ const STAFF: StaffRole[] = [
 @ApiForbiddenResponse({ type: ProblemDetailsDto })
 @Controller('attendance')
 export class AttendanceController {
-  constructor(private readonly attendance: AttendanceService) {}
+  constructor(
+    private readonly attendance: AttendanceService,
+    private readonly tracking: TrackingService,
+  ) {}
 
   @Post('challenges')
   @Roles(...STAFF)
@@ -76,6 +89,35 @@ export class AttendanceController {
   @ApiServiceUnavailableResponse({ type: ProblemDetailsDto })
   punch(@CurrentUser() user: AuthUser, @Body() dto: CreatePunchDto): Promise<PunchResultDto> {
     return this.attendance.punch(user, dto);
+  }
+
+  @Post('pings')
+  @HttpCode(200)
+  @Roles(...TRACKED)
+  @ApiOperation({
+    summary: 'Your location breadcrumbs (live or from the offline buffer), up to 200 per call',
+    description:
+      'Idempotent by clientUuid. Fixes older than 48 h or more than 2 minutes ahead of server ' +
+      'time are rejected. Two outside pings in a row during a ward shift raise OUT_OF_ZONE.',
+  })
+  @ApiOkResponse({ type: PingBatchResultDto })
+  pings(@CurrentUser() user: AuthUser, @Body() dto: PingBatchDto): Promise<PingBatchResultDto> {
+    return this.tracking.recordPings(user, dto);
+  }
+
+  @Post('tamper-events')
+  @HttpCode(200)
+  @Roles(...TRACKED)
+  @ApiOperation({
+    summary: 'Tamper signals from your phone watchdog (GPS off, mock location, ...)',
+    description: 'Idempotent by clientUuid; resend an event with resolvedAt when it ends.',
+  })
+  @ApiOkResponse({ type: TamperBatchResultDto })
+  tamper(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: TamperBatchDto,
+  ): Promise<TamperBatchResultDto> {
+    return this.tracking.recordTamper(user, dto);
   }
 
   @Get()

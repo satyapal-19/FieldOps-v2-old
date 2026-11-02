@@ -11,7 +11,7 @@ import { AppError } from '../../shared/errors/app-error';
 import { ErrorCode } from '../../shared/errors/error-codes';
 import type { EffectiveShift } from '../shifts/shifts.policy';
 import type { LocationCheck } from '../wards/wards.policy';
-import type { AttendanceStatus, PunchMode } from './attendance-types';
+import type { AttendanceStatus, PunchMode, TamperEventType } from './attendance-types';
 
 // ------------------------------------------------------------------ Hierarchy
 
@@ -342,4 +342,34 @@ export function attendanceScope(actor: AuthUser): AttendanceScope {
     return { kind: 'TEAM', managerId: actor.staffId, selfId: actor.staffId };
   }
   return { kind: 'SELF', staffId: actor.staffId };
+}
+
+/** The shift a ping belongs to: the log whose check-in..check-out window contains it. */
+export function logForPing<T extends OpenLog>(logs: T[], recordedAt: Date): T | null {
+  return (
+    logs.find(
+      (l) =>
+        l.checkinAt && recordedAt >= l.checkinAt && (!l.checkoutAt || recordedAt <= l.checkoutAt),
+    ) ?? null
+  );
+}
+
+// ------------------------------------------------------------------ Tamper events
+
+/** Signals the phone watchdog may report; SILENT_GAP is found by the server only. */
+export const DEVICE_TAMPER_TYPES = [
+  'GPS_DISABLED',
+  'PERMISSION_REVOKED',
+  'AIRPLANE_MODE',
+  'DATA_DISABLED',
+  'DEVICE_OFFLINE',
+  'MOCK_LOCATION',
+] as const;
+export type DeviceTamperType = (typeof DEVICE_TAMPER_TYPES)[number];
+
+/** Turning location off or faking it is deliberate; losing network is often not. */
+export function tamperSeverity(type: TamperEventType): 'MEDIUM' | 'HIGH' {
+  return type === 'MOCK_LOCATION' || type === 'GPS_DISABLED' || type === 'PERMISSION_REVOKED'
+    ? 'HIGH'
+    : 'MEDIUM';
 }

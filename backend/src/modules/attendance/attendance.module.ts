@@ -13,11 +13,15 @@ import { AttendanceRepository } from './attendance.repository';
 import { AttendanceService } from './attendance.service';
 import { AttendanceLog } from './entities/attendance-log.entity';
 import { LivenessChallenge } from './entities/liveness-challenge.entity';
+import { LocationPing } from './entities/location-ping.entity';
+import { TamperEvent } from './entities/tamper-event.entity';
+import { TrackingRepository } from './tracking.repository';
+import { TrackingService } from './tracking.service';
 
-/** The attendance engine: liveness challenges and punches (pings and jobs follow). */
+/** The attendance engine: liveness challenges, punches, location pings and tamper reports. */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AttendanceLog, LivenessChallenge]),
+    TypeOrmModule.forFeature([AttendanceLog, LivenessChallenge, LocationPing, TamperEvent]),
     StaffModule,
     RostersModule,
     ShiftsModule,
@@ -28,7 +32,7 @@ import { LivenessChallenge } from './entities/liveness-challenge.entity';
     AlertsModule,
   ],
   controllers: [AttendanceController],
-  providers: [AttendanceRepository, AttendanceService],
+  providers: [AttendanceRepository, AttendanceService, TrackingRepository, TrackingService],
   exports: [AttendanceService],
 })
 export class AttendanceModule {}
