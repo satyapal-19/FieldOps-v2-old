@@ -177,6 +177,14 @@
       "en": "The face did not match; try again",
       "mr": "चेहरा जुळला नाही; पुन्हा प्रयत्न करा"
     },
+    "SPOT_CHECK_CLOSED": {
+      "en": "This spot check is no longer open",
+      "mr": "ही अचानक तपासणी आता खुली नाही"
+    },
+    "COPRESENCE_FAILED": {
+      "en": "Scan the worker's FieldOps code on their own phone to mark them",
+      "mr": "कामगाराची हजेरी लावण्यासाठी त्याच्या फोनवरील FieldOps कोड स्कॅन करा"
+    },
     "FACE_PROVIDER_UNAVAILABLE": {
       "en": "Face verification is temporarily unavailable",
       "mr": "चेहरा पडताळणी तात्पुरती उपलब्ध नाही"

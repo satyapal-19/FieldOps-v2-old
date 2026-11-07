@@ -48,6 +48,61 @@ export class AppConfig {
     return this.config.get('AUTH_TEST_LOGIN_ENABLED', { infer: true });
   }
 
+  /** What the mobile app checks at start-up (forced updates). */
+  get mobile(): { minVersionCode: number; latestVersionCode: number; updateUrl: string | null } {
+    return {
+      minVersionCode: this.config.get('MOBILE_MIN_VERSION_CODE', { infer: true }),
+      latestVersionCode: this.config.get('MOBILE_LATEST_VERSION_CODE', { infer: true }),
+      updateUrl: this.config.get('MOBILE_UPDATE_URL', { infer: true }) ?? null,
+    };
+  }
+
+  /** Delivery channels beyond the in-app inbox; each is off until configured. */
+  get notifications(): {
+    fcm: { projectId: string; clientEmail: string; privateKey: string } | null;
+    smsUrl: string | null;
+    whatsappUrl: string | null;
+    gatewayToken: string | null;
+  } {
+    const projectId = this.config.get('FCM_PROJECT_ID', { infer: true });
+    return {
+      fcm: projectId
+        ? {
+            projectId,
+            clientEmail: this.config.get('FCM_CLIENT_EMAIL', { infer: true })!,
+            // Env files keep the PEM on one line with literal \n.
+            privateKey: this.config.get('FCM_PRIVATE_KEY', { infer: true })!.replace(/\\n/g, '\n'),
+          }
+        : null,
+      smsUrl: this.config.get('NOTIFY_SMS_URL', { infer: true }) ?? null,
+      whatsappUrl: this.config.get('NOTIFY_WHATSAPP_URL', { infer: true }) ?? null,
+      gatewayToken: this.config.get('NOTIFY_GATEWAY_TOKEN', { infer: true }) ?? null,
+    };
+  }
+
+  /** Probability that a checked-in field worker gets one random spot check in a shift. */
+  get spotCheckDailyRate(): number {
+    return this.config.get('SPOT_CHECK_DAILY_RATE', { infer: true });
+  }
+
+  /** Whether an inspector's proxy punch must scan the worker's rolling QR code. */
+  get copresenceRequired(): boolean {
+    return this.config.get('COPRESENCE_REQUIRED', { infer: true });
+  }
+
+  /** Folder of the offline SMKMC tile pack, or null when none is installed. */
+  get tileDir(): string | null {
+    return this.config.get('TILE_DIR', { infer: true }) ?? null;
+  }
+
+  /** Where uploaded photos are stored and how large one may be. */
+  get uploads(): { dir: string; maxBytes: number } {
+    return {
+      dir: this.config.get('UPLOAD_DIR', { infer: true }),
+      maxBytes: this.config.get('UPLOAD_MAX_BYTES', { infer: true }),
+    };
+  }
+
   get jobs(): { enabled: boolean; pingRetentionDays: number } {
     return {
       enabled: this.config.get('JOBS_ENABLED', { infer: true }),

@@ -283,6 +283,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/wards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active wards with their boundaries (no sign-in) */
+        get: operations["PublicWardsController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/offices": {
         parameters: {
             query?: never;
@@ -772,6 +789,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a photo (task evidence); returns the key to send as photoKey
+         * @description Retry-safe with clientUuid. Stored on the FieldOps server only.
+         */
+        post: operations["UploadsController_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A photo, for its uploader and the people who review their work */
+        get: operations["UploadsController_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/complaints": {
         parameters: {
             query?: never;
@@ -925,6 +979,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My inbox, newest first, with the unread count (the app polls this) */
+        get: operations["NotificationsController_inbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark some or all of my messages read */
+        post: operations["NotificationsController_markRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/push-token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Register this phone's FCM token for my pushes (after sign-in) */
+        put: operations["NotificationsController_register"];
+        post?: never;
+        /** Stop pushes to this phone (before sign-out) */
+        delete: operations["NotificationsController_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/presence-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My key for the rolling co-presence code (TOTP) my phone shows when I am marked by proxy */
+        get: operations["AttendanceController_presenceKey"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attendance/challenges": {
         parameters: {
             query?: never;
@@ -1056,6 +1179,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/live/positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Who is checked in on a field shift right now, with their latest position
+         * @description Admin all wards (or one), ward inspector their ward, inspector their team and placements. Poll every 30 s; state ACTIVE / STALE / SILENT / NO_SIGNAL from the last ping.
+         */
+        get: operations["ReportsController_live"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/ward-days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Daily attendance per ward from the nightly summaries (up to 92 days) */
+        get: operations["ReportsController_wardDays"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/staff-days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Per-person late marks, absences, leave and corrections over a range */
+        get: operations["ReportsController_staffDays"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/muster-roll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A ward's monthly muster roll: CSV (Marathi names) or printable PDF */
+        get: operations["ReportsController_musterRoll"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/wards/{id}/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Citizens: staff placed and present in a ward over the last week (counts only) */
+        get: operations["ReportsController_publicWard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/face/capture-options": {
         parameters: {
             query?: never;
@@ -1065,6 +1276,215 @@ export interface paths {
         };
         /** Which face capture flow the app should run (local or Aadhaar FaceRD) */
         get: operations["FaceController_captureOptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spot-checks/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My spot checks waiting for an answer (poll while on duty) */
+        get: operations["SpotChecksController_mine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spot-checks/{id}/snooze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask for 10 more minutes, once */
+        post: operations["SpotChecksController_snooze"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spot-checks/{id}/respond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Answer: a fresh challenge, the face and where you are (same proof as a punch)
+         * @description A face mismatch can be retried until the deadline; outside the ward is recorded and escalated.
+         */
+        post: operations["SpotChecksController_respond"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spot-checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Spot checks in your scope (admin all, ward inspector ward, inspector team) */
+        get: operations["SpotChecksController_list"];
+        put?: never;
+        /** Order a spot check now for someone on duty in your scope */
+        post: operations["SpotChecksController_order"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My conversations (joins today's squad / ward channels), newest first */
+        get: operations["ChatController_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/conversations/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Messages, newest first (page back with before) */
+        get: operations["ChatController_messages"];
+        put?: never;
+        /** Send a text, voice note, photo or location (retry-safe with clientUuid) */
+        post: operations["ChatController_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/conversations/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the conversation read up to now */
+        post: operations["ChatController_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/direct": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open (or reuse) a direct conversation along the hierarchy */
+        post: operations["ChatController_direct"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/messages/{id}/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A message's voice note or photo, for the conversation's members */
+        get: operations["ChatController_media"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tiles/manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether an offline tile pack is installed, and its zooms and bounds */
+        get: operations["TilesController_manifest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tiles/{z}/{x}/{y}.png": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One map tile from the offline pack (404 when not in the pack) */
+        get: operations["TilesController_tile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/app-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Mobile start-up settings: minimum version, face flow, ping cadence, server time */
+        get: operations["AppInfoController_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1098,7 +1518,7 @@ export interface components {
             pendingMigrations: boolean;
         };
         /** @enum {string} */
-        ErrorCode: "VALIDATION_FAILED" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "VERSION_CONFLICT" | "PAYLOAD_TOO_LARGE" | "RULE_VIOLATION" | "RATE_LIMITED" | "HTTP_ERROR" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR" | "AUTH_INVALID_CREDENTIALS" | "AUTH_OTP_INVALID" | "AUTH_OTP_EXPIRED" | "AUTH_OTP_TOO_MANY_ATTEMPTS" | "AUTH_OTP_RATE_LIMITED" | "AUTH_OTP_DELIVERY_UNAVAILABLE" | "AUTH_SESSION_REVOKED" | "AUTH_ACCOUNT_INACTIVE" | "AUTH_WEAK_PASSWORD" | "STAFF_IDENTITY_TAKEN" | "STAFF_HAS_REPORTS" | "OFFICE_CODE_TAKEN" | "ROSTER_WORKER_TAKEN" | "ASSIGNMENT_EXISTS" | "HOLIDAY_DATE_TAKEN" | "LEAVE_OVERLAP" | "REGULARIZATION_EXISTS" | "WARD_CODE_TAKEN" | "INVALID_BOUNDARY" | "OUTSIDE_WARD" | "NO_ASSIGNMENT" | "ASSIGNMENT_NOT_APPROVED" | "OUTSIDE_GEOFENCE" | "LOCATION_TOO_INACCURATE" | "OUTSIDE_SHIFT_WINDOW" | "ALREADY_CHECKED_IN" | "ALREADY_CHECKED_OUT" | "NOT_CHECKED_IN" | "ON_LEAVE" | "CHALLENGE_INVALID" | "CHALLENGE_EXPIRED" | "FACE_MISMATCH" | "FACE_PROVIDER_UNAVAILABLE" | "FACE_NOT_ENROLLED" | "AADHAAR_CAPTURE_FAILED" | "AADHAAR_IDENTITY_MISSING";
+        ErrorCode: "VALIDATION_FAILED" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT" | "VERSION_CONFLICT" | "PAYLOAD_TOO_LARGE" | "RULE_VIOLATION" | "RATE_LIMITED" | "HTTP_ERROR" | "SERVICE_UNAVAILABLE" | "INTERNAL_ERROR" | "AUTH_INVALID_CREDENTIALS" | "AUTH_OTP_INVALID" | "AUTH_OTP_EXPIRED" | "AUTH_OTP_TOO_MANY_ATTEMPTS" | "AUTH_OTP_RATE_LIMITED" | "AUTH_OTP_DELIVERY_UNAVAILABLE" | "AUTH_SESSION_REVOKED" | "AUTH_ACCOUNT_INACTIVE" | "AUTH_WEAK_PASSWORD" | "STAFF_IDENTITY_TAKEN" | "STAFF_HAS_REPORTS" | "OFFICE_CODE_TAKEN" | "ROSTER_WORKER_TAKEN" | "ASSIGNMENT_EXISTS" | "HOLIDAY_DATE_TAKEN" | "LEAVE_OVERLAP" | "REGULARIZATION_EXISTS" | "WARD_CODE_TAKEN" | "INVALID_BOUNDARY" | "OUTSIDE_WARD" | "NO_ASSIGNMENT" | "ASSIGNMENT_NOT_APPROVED" | "OUTSIDE_GEOFENCE" | "LOCATION_TOO_INACCURATE" | "OUTSIDE_SHIFT_WINDOW" | "ALREADY_CHECKED_IN" | "ALREADY_CHECKED_OUT" | "NOT_CHECKED_IN" | "ON_LEAVE" | "CHALLENGE_INVALID" | "CHALLENGE_EXPIRED" | "FACE_MISMATCH" | "SPOT_CHECK_CLOSED" | "COPRESENCE_FAILED" | "FACE_PROVIDER_UNAVAILABLE" | "FACE_NOT_ENROLLED" | "AADHAAR_CAPTURE_FAILED" | "AADHAAR_IDENTITY_MISSING";
         ProblemDetailsDto: {
             /** @example urn:fieldops:error:NOT_FOUND */
             type: string;
@@ -1432,6 +1852,20 @@ export interface components {
             withinTolerance: boolean;
             /** @example 11.1 */
             distanceToEdgeMeters: number;
+        };
+        PublicWardDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example W04 */
+            code: string;
+            name: string;
+            nameMr: string;
+            /** @enum {string} */
+            zone: "SANGLI" | "MIRAJ" | "KUPWAD";
+            /** @description GeoJSON Polygon */
+            boundary: {
+                [key: string]: unknown;
+            };
         };
         OfficeDto: {
             id: string;
@@ -1984,6 +2418,22 @@ export interface components {
             /** Format: uuid */
             assignedToId: string;
         };
+        UploadDto: {
+            /**
+             * Format: uuid
+             * @description Pass as photoKey on a task update, or as a voice message key
+             */
+            id: string;
+            /** @enum {string} */
+            kind: "TASK_PHOTO" | "VOICE_NOTE";
+            /** @example image/jpeg */
+            contentType: string;
+            sizeBytes: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description True when this clientUuid was already uploaded (a retry) */
+            replayed: boolean;
+        };
         SubmitComplaintDto: {
             /**
              * Format: uuid
@@ -2113,6 +2563,55 @@ export interface components {
             /** @example Spoke to the worker; phone battery had died. */
             note?: string;
         };
+        NotificationDto: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "SPOT_CHECK" | "ALERT" | "TASK" | "CHAT" | "REQUEST" | "SYSTEM";
+            /** @enum {string} */
+            priority: "HIGH" | "NORMAL";
+            title: string;
+            titleMr: string | null;
+            body: string | null;
+            bodyMr: string | null;
+            refType: string | null;
+            refId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            readAt: string | null;
+        };
+        InboxDto: {
+            /** @description Newest first */
+            items: components["schemas"]["NotificationDto"][];
+            unreadCount: number;
+        };
+        MarkReadDto: {
+            /** @description These messages; omit with all=true */
+            ids?: string[];
+            /** @description Mark every unread message read */
+            all?: boolean;
+        };
+        MarkedDto: {
+            marked: number;
+        };
+        PushTokenDto: {
+            /** @description FCM registration token of this phone */
+            token: string;
+            /** @enum {string} */
+            platform: "ANDROID" | "IOS";
+        };
+        RemovePushTokenDto: {
+            token: string;
+        };
+        PresenceKeyDto: {
+            /** @description Base64 key: compute TOTP codes offline (HMAC-SHA1, 6 digits) */
+            key: string;
+            /** @example 30 */
+            periodSeconds: number;
+            /** @example 6 */
+            digits: number;
+        };
         CreateChallengeDto: {
             /**
              * Format: uuid
@@ -2157,6 +2656,11 @@ export interface components {
              * @example 12.5
              */
             accuracyM: number;
+            /**
+             * @description Proxy punch: the worker's rolling code scanned from their phone (co-presence)
+             * @example 492039
+             */
+            presenceCode?: string;
             /** @description The phone reported a mock location (recorded, flagged) */
             isMocked?: boolean;
             /** @description Local face provider: base64 JPEG face crop (≤ 96000 chars); never stored */
@@ -2358,6 +2862,93 @@ export interface components {
             pointsPurged: boolean;
             tamperEvents: components["schemas"]["RouteTamperEventDto"][];
         };
+        LivePositionDto: {
+            /** Format: uuid */
+            staffId: string;
+            /** Format: uuid */
+            attendanceId: string;
+            /** Format: uuid */
+            wardId: string;
+            /** @example 2026-11-02 */
+            date: string;
+            /** Format: date-time */
+            checkinAt: string;
+            /** @enum {string} */
+            state: "ACTIVE" | "STALE" | "SILENT" | "NO_SIGNAL";
+            /** Format: date-time */
+            lastSeenAt: string | null;
+            /** @description Last ping, else the check-in point */
+            latitude: number | null;
+            longitude: number | null;
+            accuracyM: number | null;
+            inWard: boolean | null;
+            isMocked: boolean;
+        };
+        LiveDto: {
+            /**
+             * Format: date-time
+             * @description Server time of this snapshot
+             */
+            at: string;
+            items: components["schemas"]["LivePositionDto"][];
+        };
+        WardDayReportDto: {
+            /** @example 2026-11-01 */
+            date: string;
+            /** Format: uuid */
+            wardId: string;
+            assignedCount: number;
+            presentCount: number;
+            lateCount: number;
+            halfDayCount: number;
+            absentCount: number;
+            onLeaveCount: number;
+            proxyCount: number;
+            autoCheckoutCount: number;
+            suspiciousCount: number;
+            /** @description Trusted distance walked by the ward team, metres */
+            distanceM: number;
+        };
+        WardDaysDto: {
+            /** @description Newest first; from the nightly summaries */
+            items: components["schemas"]["WardDayReportDto"][];
+        };
+        StaffReportRowDto: {
+            /** Format: uuid */
+            staffId: string;
+            /** @description Days with an attendance row */
+            days: number;
+            /** @description Days with a check-in */
+            present: number;
+            late: number;
+            lateMinutes: number;
+            halfDay: number;
+            absent: number;
+            onLeave: number;
+            regularized: number;
+            autoCheckout: number;
+            suspicious: number;
+        };
+        StaffReportDto: {
+            /** @description Most late days first */
+            items: components["schemas"]["StaffReportRowDto"][];
+            page: number;
+            pageSize: number;
+            total: number;
+        };
+        PublicWardDayDto: {
+            /** @example 2026-11-01 */
+            date: string;
+            assignedCount: number;
+            presentCount: number;
+            onLeaveCount: number;
+        };
+        PublicWardAttendanceDto: {
+            /** Format: uuid */
+            wardId: string;
+            /** @description The last 7 summarised days, newest first */
+            days: components["schemas"]["PublicWardDayDto"][];
+        };
         FaceCaptureOptionsDto: {
             /** @enum {string} */
             provider: "local" | "aadhaar";
@@ -2369,6 +2960,171 @@ export interface components {
             pidOptionsXml?: string;
             /** @example in.gov.uidai.rdservice.face.CAPTURE */
             intentAction?: string;
+        };
+        SpotCheckDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            staffId: string;
+            /** Format: uuid */
+            wardId: string | null;
+            /** @example 2026-11-02 */
+            date: string;
+            /** @enum {string} */
+            trigger: "RANDOM" | "SENIOR_MANUAL";
+            /** Format: uuid */
+            initiatedById: string | null;
+            reason: string | null;
+            /** @enum {string} */
+            status: "SCHEDULED" | "NOTIFIED" | "SNOOZED" | "VERIFIED" | "MISSED" | "FACE_MISMATCH" | "OUT_OF_GEOFENCE" | "UNREACHABLE" | "CANCELLED";
+            /** Format: date-time */
+            notifiedAt: string | null;
+            /**
+             * Format: date-time
+             * @description Answer by this time
+             */
+            dueAt: string | null;
+            snoozed: boolean;
+            /** Format: date-time */
+            respondedAt: string | null;
+            inGeofence: boolean | null;
+            faceScore: number | null;
+            /** Format: date-time */
+            escalatedAt: string | null;
+            version: number;
+        };
+        RespondSpotCheckDto: {
+            /**
+             * Format: uuid
+             * @description Retry-safe: the same one answers once
+             */
+            clientUuid: string;
+            /**
+             * Format: uuid
+             * @description From POST /attendance/challenges
+             */
+            challengeId: string;
+            latitude: number;
+            longitude: number;
+            /** @description GPS accuracy, metres */
+            accuracyM: number;
+            /** @description JPEG face crop (FACE_PROVIDER=local) */
+            faceImageBase64?: string;
+            /** @description Aadhaar FaceRD PID block (FACE_PROVIDER=aadhaar) */
+            aadhaarPidXml?: string;
+            aadhaarTxn?: string;
+        };
+        OrderSpotCheckDto: {
+            /**
+             * Format: uuid
+             * @description Someone on duty in your scope
+             */
+            staffId: string;
+            /** @example Not seen at the market beat since 9 */
+            reason?: string;
+        };
+        SpotCheckPageDto: {
+            items: components["schemas"]["SpotCheckDto"][];
+            page: number;
+            pageSize: number;
+            total: number;
+        };
+        ConversationDto: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            type: "DIRECT" | "SQUAD_TEAM" | "WARD_BROADCAST" | "CITY_BROADCAST";
+            title: string | null;
+            /** Format: uuid */
+            wardId: string | null;
+            /** Format: uuid */
+            inspectorId: string | null;
+            /** @example 2026-11-02 */
+            date: string | null;
+            /** @description Read-only (a past squad chat) */
+            archived: boolean;
+            /** @description Whether you may post here (broadcasts are one-way) */
+            canPost: boolean;
+            /** @description Active members (staff ids) */
+            memberIds: string[];
+            /** Format: date-time */
+            lastMessageAt: string | null;
+            unread: number;
+        };
+        MessageDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            conversationId: string;
+            /** Format: uuid */
+            senderId: string;
+            /** @enum {string} */
+            type: "TEXT" | "VOICE" | "IMAGE" | "LOCATION";
+            text: string | null;
+            /** @description Voice note or photo attached (GET /chat/messages/{id}/media) */
+            hasMedia: boolean;
+            durationSec: number | null;
+            latitude: number | null;
+            longitude: number | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        SendMessageDto: {
+            /**
+             * Format: uuid
+             * @description Made on the phone: a retry sends once
+             */
+            clientUuid: string;
+            /** @enum {string} */
+            type: "TEXT" | "VOICE" | "IMAGE" | "LOCATION";
+            /** @description TEXT */
+            text?: string;
+            /**
+             * Format: uuid
+             * @description VOICE / IMAGE: your upload (POST /uploads)
+             */
+            uploadId?: string;
+            /** @description VOICE: length in seconds */
+            durationSec?: number;
+            latitude?: number;
+            longitude?: number;
+        };
+        DirectDto: {
+            /** Format: uuid */
+            staffId: string;
+        };
+        TileManifestDto: {
+            /** @description False when no offline pack is installed (use the public OSM server) */
+            available: boolean;
+            minZoom: number | null;
+            maxZoom: number | null;
+            /** @description [west, south, east, north] of the pack */
+            bounds: number[] | null;
+            /** @example © OpenStreetMap contributors */
+            attribution: string;
+            /** @description When the pack was built */
+            builtAt: string | null;
+        };
+        AppInfoDto: {
+            /** @description Android versionCode below which the app must update before use */
+            minVersionCode: number;
+            /** @description Newest versionCode; above the minimum the update is optional */
+            latestVersionCode: number;
+            updateUrl?: string | null;
+            /**
+             * @description Which face capture flow to prepare
+             * @enum {string}
+             */
+            faceProvider: "local" | "aadhaar";
+            /** @description Seconds between location pings while on duty */
+            pingIntervalSeconds: number;
+            /** @description No ping for this long during a shift raises a silent-gap alert */
+            silentGapMinutes: number;
+            /**
+             * Format: date-time
+             * @description Server time (UTC): the app shows a wrong phone clock
+             */
+            serverTime: string;
         };
     };
     responses: never;
@@ -2477,9 +3233,7 @@ export interface operations {
     AuthController_verifyOtp: {
         parameters: {
             query?: never;
-            header: {
-                "user-agent": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2528,9 +3282,7 @@ export interface operations {
     AuthController_login: {
         parameters: {
             query?: never;
-            header: {
-                "user-agent": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -2579,9 +3331,7 @@ export interface operations {
     AuthController_testLogin: {
         parameters: {
             query?: never;
-            header: {
-                "user-agent": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -3400,6 +4150,33 @@ export interface operations {
                 };
             };
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    PublicWardsController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicWardDto"][];
+                };
+            };
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5834,6 +6611,103 @@ export interface operations {
             };
         };
     };
+    UploadsController_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description TASK_PHOTO: JPEG or PNG; VOICE_NOTE: M4A / AAC, Ogg or AMR
+                     */
+                    file: string;
+                    /** Format: uuid */
+                    clientUuid: string;
+                    /** @enum {string} */
+                    kind: "TASK_PHOTO" | "VOICE_NOTE";
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadDto"];
+                };
+            };
+            /** @description Not a JPEG / PNG, or no file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    UploadsController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": string;
+                    "image/png": string;
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/jpeg": components["schemas"]["ProblemDetailsDto"];
+                    "image/png": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     PublicComplaintsController_submit: {
         parameters: {
             query?: never;
@@ -6389,6 +7263,171 @@ export interface operations {
             };
         };
     };
+    NotificationsController_inbox: {
+        parameters: {
+            query?: {
+                unreadOnly?: boolean;
+                /** @description Older than this (paging back) */
+                before?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_markRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkReadDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarkedDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushTokenDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    NotificationsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemovePushTokenDto"];
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    AttendanceController_presenceKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresenceKeyDto"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     AttendanceController_challenge: {
         parameters: {
             query?: never;
@@ -6795,6 +7834,288 @@ export interface operations {
             };
         };
     };
+    ReportsController_live: {
+        parameters: {
+            query?: {
+                /** @description One ward (admins); ward inspectors see their own */
+                wardId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LiveDto"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ReportsController_wardDays: {
+        parameters: {
+            query: {
+                /** @description IST date, inclusive */
+                from: string;
+                /** @description IST date, inclusive (at most 92 days) */
+                to: string;
+                /** @description One ward (admins); ward inspectors see their own */
+                wardId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WardDaysDto"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bad date range */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ReportsController_staffDays: {
+        parameters: {
+            query: {
+                /** @description IST date, inclusive */
+                from: string;
+                /** @description IST date, inclusive (at most 92 days) */
+                to: string;
+                /** @description One ward (admins); ward inspectors see their own */
+                wardId?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffReportDto"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description Bad date range */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ReportsController_musterRoll: {
+        parameters: {
+            query: {
+                /** @description Calendar month (IST) */
+                month: string;
+                /** @description Required for admins; ward inspectors get their own */
+                wardId?: string;
+                format?: "csv" | "pdf";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/pdf": string;
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ReportsController_publicWard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicWardAttendanceDto"];
+                };
+            };
+            /** @description Validation failed */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
     FaceController_captureOptions: {
         parameters: {
             query?: {
@@ -6813,6 +8134,560 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FaceCaptureOptionsDto"];
+                };
+            };
+        };
+    };
+    SpotChecksController_mine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpotCheckDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SpotChecksController_snooze: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpotCheckDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description SPOT_CHECK_CLOSED / RULE_VIOLATION */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SpotChecksController_respond: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RespondSpotCheckDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpotCheckDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description SPOT_CHECK_CLOSED / FACE_MISMATCH / ... */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SpotChecksController_list: {
+        parameters: {
+            query?: {
+                date?: string;
+                status?: "SCHEDULED" | "NOTIFIED" | "SNOOZED" | "VERIFIED" | "MISSED" | "FACE_MISMATCH" | "OUT_OF_GEOFENCE" | "UNREACHABLE" | "CANCELLED";
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpotCheckPageDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    SpotChecksController_order: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderSpotCheckDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpotCheckDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description One is already waiting */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description NOT_CHECKED_IN */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ChatController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ChatController_messages: {
+        parameters: {
+            query?: {
+                /** @description Older than this (paging back) */
+                before?: string;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageDto"][];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ChatController_send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            /** @description A broadcast you cannot post to */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ChatController_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ChatController_direct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DirectDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDto"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    ChatController_media: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "audio/mp4": string;
+                    "audio/ogg": string;
+                    "audio/amr": string;
+                    "image/jpeg": string;
+                    "image/png": string;
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetailsDto"];
+                };
+            };
+        };
+    };
+    TilesController_manifest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TileManifestDto"];
+                };
+            };
+        };
+    };
+    TilesController_tile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                z: number;
+                x: number;
+                y: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+        };
+    };
+    AppInfoController_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppInfoDto"];
                 };
             };
         };

@@ -63,6 +63,7 @@ describe('day close (e2e)', () => {
       ['WK4', Role.WORKER, w1, 'IN1', null],
       ['WK5', Role.WORKER, w1, 'IN1', null], // not placed on DAY: not expected
       ['OF1', Role.OFFICE_STAFF, null, 'ADM', office],
+      ['OF2', Role.OFFICE_STAFF, null, 'ADM', office], // joins on DAY: not absent before
     ];
     for (const [key, role, homeWardId, managerKey, officeId] of people) {
       s[key] = await seedStaff(t.dataSource, {
@@ -71,6 +72,7 @@ describe('day close (e2e)', () => {
         homeWardId,
         officeId,
         reportsToId: managerKey ? s[managerKey].id : null,
+        createdAt: new Date(key === 'OF2' ? '2026-11-02T03:00:00Z' : '2026-10-01T00:00:00Z'),
       });
       tok[key] = await bearerFor(http, `D-${key}`);
     }
@@ -112,6 +114,9 @@ describe('day close (e2e)', () => {
     expect(await statusOf('OF1')).toBe('ABSENT'); // Monday, no check-in
     expect(await statusOf('OF1', '2026-11-01')).toBe('HOLIDAY_OFF'); // Sunday
     expect(await statusOf('WK5')).toBeNull(); // not placed that day
+    expect(await statusOf('WI1')).toBe('ABSENT'); // ward inspectors have no assignment row
+    expect(await statusOf('OF2')).toBe('ABSENT'); // joined that morning
+    expect(await statusOf('OF2', '2026-11-01')).toBeNull(); // not yet on the rolls
     expect(result).toMatch(/absent/);
 
     const alerts = await http

@@ -1,314 +1,198 @@
 import 'dart:async';
-import 'dart:convert';
+
+import 'package:fieldops_api/fieldops_api.dart';
 import 'package:flutter/foundation.dart';
-import 'package:workmanager/workmanager.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'offline_queue_service.dart';
+import 'package:uuid/uuid.dart';
+import 'package:workmanager/workmanager.dart';
 
-const _taskName       = 'smkmc_location_ping';
-const _syncTaskName   = 'smkmc_offline_sync';
+import '../api/api_service.dart';
+import '../outbox/outbox_service.dart';
+import '../outbox/sqlite_outbox_store.dart';
 
-// Default demo staff ID (Ramesh Patil) used if user hasn't explicitly logged in yet
-const _defaultStaffId = '20000000-0000-0000-0000-000000000011';
+const _pingTask = 'smkmc_location_ping';
+const _syncTask = 'smkmc_outbox_sync';
 
-/// Top-level callback required by Workmanager (must be @pragma)
+/// Set while a field shift is checked in: pings are sent only then.
+const _trackingKey = 'tracking_active';
+
+/// Workmanager entry point. Runs in its own isolate, so it builds its own
+/// API client and opens the same SQLite outbox.
 @pragma('vm:entry-point')
 void workmanagerCallbackDispatcher() {
   Workmanager().executeTask((taskName, inputData) async {
-    switch (taskName) {
-      case _taskName:
-        await _recordLocationPing(inputData);
-        break;
-      case _syncTaskName:
-        await _syncOfflineQueue();
-        break;
+    try {
+      if (!Get.isRegistered<ApiService>()) Get.put(ApiService(), permanent: true);
+      final outbox = OutboxService(await SqliteOutboxStore.open());
+      if (taskName == _pingTask) {
+        final prefs = await SharedPreferences.getInstance();
+        if (prefs.getBool(_trackingKey) ?? false) {
+          await LocationPingService.recordPing(outbox);
+        }
+      }
+      await outbox.flush();
+    } catch (e) {
+      debugPrint('[Workmanager] $taskName: $e');
     }
     return true;
   });
 }
 
-Future<SupabaseClient?> _getOrInitSupabase() async {
-  try {
-    return Supabase.instance.client;
-  } catch (_) {
-    try {
-      await Supabase.initialize(
-        url: const String.fromEnvironment('SUPABASE_URL'),
-        // ignore: deprecated_member_use
-        anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
-      );
-      return Supabase.instance.client;
-    } catch (_) {
-      return null;
-    }
-  }
-}
-
-Future<String> _resolveStaffId(String? passedStaffId) async {
-  if (passedStaffId != null && passedStaffId.isNotEmpty) {
-    return passedStaffId;
-  }
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final cached = prefs.getString('cached_staff_profile');
-    if (cached != null && cached.isNotEmpty) {
-      final regExp = RegExp(r'"id"\s*:\s*"([^"]+)"');
-      final match = regExp.firstMatch(cached);
-      if (match != null && match.group(1) != null) {
-        return match.group(1)!;
-      }
-    }
-  } catch (_) {}
-  return _defaultStaffId;
-}
-
-Future<void> _recordLocationPing(Map<String, dynamic>? inputData) async {
-  try {
-    final staffId = await _resolveStaffId(inputData?['staff_id'] as String?);
-    final logId   = inputData?['attendance_log_id'] as String?;
-
-    // Check GPS permissions before querying
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        return;
-      }
-    }
-
-    final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        timeLimit: Duration(seconds: 12),
-      ),
-    );
-
-    // Dynamically resolve ward polygon and staff info from cached profile
-    List<Map<String, double>> activePolygon = const [
-      {'lat': 16.8431, 'lng': 74.6008},
-      {'lat': 16.8431, 'lng': 74.6032},
-      {'lat': 16.8455, 'lng': 74.6032},
-      {'lat': 16.8455, 'lng': 74.6008},
-      {'lat': 16.8431, 'lng': 74.6008},
-    ];
-    String activeWardId = '11111111-0000-0000-0000-000000000004';
-    String staffName = 'Ramesh Vishnu Patil';
-    String staffNameMr = 'रमेश विष्णू पाटील';
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final cachedJson = prefs.getString('cached_staff_profile');
-      if (cachedJson != null && cachedJson.isNotEmpty) {
-        final profile = jsonDecode(cachedJson) as Map<String, dynamic>;
-        if (profile['name'] != null) staffName = profile['name'].toString();
-        if (profile['name_mr'] != null) staffNameMr = profile['name_mr'].toString();
-        if (profile['ward_id'] != null) activeWardId = profile['ward_id'].toString();
-
-        final ward = profile['wards'] as Map<String, dynamic>?;
-        var boundary = ward?['boundary'];
-        if (boundary is String) boundary = jsonDecode(boundary);
-        if (boundary != null && boundary['coordinates'] != null) {
-          final coords = (boundary['coordinates'][0] as List)
-              .map((c) => {
-                    'lat': (c[1] as num).toDouble(),
-                    'lng': (c[0] as num).toDouble(),
-                  })
-              .toList();
-          if (coords.length >= 3) {
-            activePolygon = List<Map<String, double>>.from(coords);
-          }
-        }
-      }
-    } catch (_) {}
-
-    int n = activePolygon.length;
-    bool isWithinWard = false;
-    int j = n - 1;
-    for (int i = 0; i < n; j = i++) {
-      final xi = activePolygon[i]['lng']!;
-      final yi = activePolygon[i]['lat']!;
-      final xj = activePolygon[j]['lng']!;
-      final yj = activePolygon[j]['lat']!;
-      if (((yi > position.latitude) != (yj > position.latitude)) &&
-          (position.longitude < (xj - xi) * (position.latitude - yi) / (yj - yi) + xi)) {
-        isWithinWard = !isWithinWard;
-      }
-    }
-
-    final payload = <String, dynamic>{
-      'staff_id': staffId,
-      if (logId != null && logId.isNotEmpty) 'attendance_log_id': logId,
-      'lat': position.latitude,
-      'lng': position.longitude,
-      'accuracy_m': position.accuracy,
-      'is_within_ward': isWithinWard,
-      'recorded_at': DateTime.now().toUtc().toIso8601String(),
-      'synced_from_offline': false,
-    };
-
-    final connectivity = await Connectivity().checkConnectivity();
-    final isOnline = !connectivity.contains(ConnectivityResult.none);
-
-    if (isOnline) {
-      final supabase = await _getOrInitSupabase();
-      if (supabase != null) {
-        await supabase.from('location_pings').insert(payload);
-        debugPrint('[GPS Ping] Sent live ping to Web Dashboard: ${position.latitude}, ${position.longitude} (in ward: $isWithinWard)');
-
-        // If outside assigned ward geofence, send real-time OUT_OF_ZONE alert to supervisor
-        if (!isWithinWard) {
-          try {
-            final now = DateTime.now().toUtc().toIso8601String();
-            await supabase.from('alerts').insert({
-              'staff_id': staffId,
-              'ward_id': activeWardId,
-              'alert_type': 'OUT_OF_ZONE',
-              'severity': 'HIGH',
-              'message': 'Shift Breadcrumb Alert: $staffName is OUTSIDE assigned geofence (${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)})',
-              'message_mr': 'थेट बीट अलर्ट: $staffNameMr हे नियुक्त प्रभागाबाहेर आढळले.',
-              'location_lat': position.latitude,
-              'location_lng': position.longitude,
-              'is_resolved': false,
-              'resolved': false,
-              'triggered_at': now,
-              'created_at': now,
-            });
-          } catch (e) {
-            debugPrint('[Ping OutOfZone Alert]: $e');
-          }
-        }
-      } else {
-        await OfflineQueueService().enqueuePing(payload);
-      }
-    } else {
-      await OfflineQueueService().enqueuePing(payload);
-    }
-  } catch (e) {
-    debugPrint('[GPS Ping] Non-fatal ping error: $e');
-  }
-}
-
-Future<void> _syncOfflineQueue() async {
-  try {
-    final connectivity = await Connectivity().checkConnectivity();
-    if (connectivity.contains(ConnectivityResult.none) && connectivity.length == 1) return;
-
-    final queue    = OfflineQueueService();
-    final supabase = await _getOrInitSupabase();
-    if (supabase == null) return;
-
-    // Sync location pings
-    final pings = await queue.getPendingPings();
-    if (pings.isNotEmpty) {
-      await supabase.from('location_pings').insert(pings);
-      await queue.clearPingQueue();
-    }
-
-    // Sync check-ins
-    final checkIns = await queue.getPendingCheckIns();
-    for (final ci in checkIns) {
-      await supabase.from('attendance_logs').upsert(ci);
-    }
-    if (checkIns.isNotEmpty) await queue.clearCheckInQueue();
-
-    // Sync check-outs
-    final checkOuts = await queue.getPendingCheckOuts();
-    for (final co in checkOuts) {
-      final id = co['id'];
-      await supabase.from('attendance_logs').update(co).eq('id', id);
-    }
-    if (checkOuts.isNotEmpty) await queue.clearCheckOutQueue();
-  } catch (_) {}
-}
-
-/// Service to manage background & foreground live location pings
+/// Breadcrumb pings during a field shift (about every 10 minutes) and the
+/// tamper watchdog. Pings never decide anything on the phone: the server
+/// checks the geofence and raises OUT_OF_ZONE itself.
 class LocationPingService {
   static final LocationPingService _instance = LocationPingService._internal();
   factory LocationPingService() => _instance;
   LocationPingService._internal();
 
-  Timer? _foregroundTimer;
-  String? _activeStaffId;
-  String? _activeAttendanceLogId;
+  static const interval = Duration(minutes: 10);
+  static const _uuid = Uuid();
 
-  /// Send immediate live GPS location to Supabase / Web Dashboard right now
-  Future<void> sendLivePing({String? staffId, String? attendanceLogId}) async {
-    try {
-      final resolvedStaff = staffId ?? _activeStaffId;
-      final resolvedLog = attendanceLogId ?? _activeAttendanceLogId;
-      await _recordLocationPing({
-        if (resolvedStaff != null) 'staff_id': resolvedStaff,
-        if (resolvedLog != null) 'attendance_log_id': resolvedLog,
-      });
-    } catch (e) {
-      debugPrint('[LocationPingService] sendLivePing note: $e');
+  Timer? _timer;
+  StreamSubscription<ServiceStatus>? _gpsStatus;
+  DateTime? _gpsOffSince;
+  bool _mockReported = false;
+
+  /// Takes one fix and stores it in the outbox (sent now or when online).
+  static Future<void> recordPing(OutboxService outbox) async {
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      await outbox.addTamper(_tamper(TamperEventDtoEventTypeEnum.PERMISSION_REVOKED));
+      return;
     }
+    if (!await Geolocator.isLocationServiceEnabled()) return; // watchdog records it
+    final pos = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 20),
+      ),
+    );
+    await outbox.addPing(PingDto((b) => b
+      ..clientUuid = _uuid.v4()
+      ..latitude = pos.latitude
+      ..longitude = pos.longitude
+      ..accuracyM = pos.accuracy
+      ..isMocked = pos.isMocked
+      ..fromOffline = false
+      ..recordedAt = pos.timestamp.toUtc()));
   }
 
-  /// Start live tracking: sends immediately on open, then repeats every 10 minutes in foreground & background
-  Future<void> startLiveTracking({
-    String? staffId,
-    String? attendanceLogId,
-  }) async {
-    if (staffId != null) _activeStaffId = staffId;
-    if (attendanceLogId != null) _activeAttendanceLogId = attendanceLogId;
+  static TamperEventDto _tamper(
+    TamperEventDtoEventTypeEnum type, {
+    DateTime? startedAt,
+    DateTime? resolvedAt,
+    Position? last,
+  }) =>
+      TamperEventDto((b) => b
+        ..clientUuid = _uuid.v4()
+        ..eventType = type
+        ..startedAt = (startedAt ?? DateTime.now()).toUtc()
+        ..resolvedAt = resolvedAt?.toUtc()
+        ..lastLatitude = last?.latitude
+        ..lastLongitude = last?.longitude);
 
-    // 1. Immediately send live location on app open
-    await sendLivePing(staffId: _activeStaffId, attendanceLogId: _activeAttendanceLogId);
+  OutboxService? get _outbox =>
+      Get.isRegistered<OutboxService>() ? Get.find<OutboxService>() : null;
 
-    // 2. Set up foreground/app timer to fire every 10 minutes continuously
-    _foregroundTimer?.cancel();
-    _foregroundTimer = Timer.periodic(const Duration(minutes: 10), (_) async {
-      debugPrint('[LocationPingService] 10-minute periodic ping triggering...');
-      await sendLivePing(staffId: _activeStaffId, attendanceLogId: _activeAttendanceLogId);
-    });
+  /// After a field check-in: ping now, then every 10 minutes, in the
+  /// foreground (timer) and background (Workmanager, every 15 minutes).
+  Future<void> startLiveTracking() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_trackingKey, true);
+    _mockReported = false;
 
-    // 3. Register background Workmanager task for when app is minimized or backgrounded
-    final effectiveStaff = await _resolveStaffId(_activeStaffId);
+    await sendLivePing();
+    _timer?.cancel();
+    _timer = Timer.periodic(interval, (_) => sendLivePing());
+    _watchGps();
     try {
       await Workmanager().registerPeriodicTask(
-        _taskName,
-        _taskName,
-        frequency: const Duration(minutes: 15), // Android Workmanager standard periodic frequency
-        inputData: {
-          'staff_id': effectiveStaff,
-          if (_activeAttendanceLogId != null) 'attendance_log_id': _activeAttendanceLogId,
-        },
-        constraints: Constraints(
-          networkType: NetworkType.notRequired, // Collects offline & syncs when online
-        ),
+        _pingTask,
+        _pingTask,
+        frequency: const Duration(minutes: 15),
+        constraints: Constraints(networkType: NetworkType.notRequired),
         existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
       );
     } catch (e) {
-      debugPrint('[LocationPingService] Workmanager register note: $e');
+      debugPrint('[LocationPingService] Workmanager register: $e');
     }
   }
 
-  /// Backward compatible alias for startLiveTracking
-  Future<void> startPinging({String? staffId, String? attendanceLogId}) =>
-      startLiveTracking(staffId: staffId, attendanceLogId: attendanceLogId);
+  /// Only starts tracking if the stored state says a shift is checked in
+  /// (app restarted during a shift).
+  Future<void> resumeIfActive() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_trackingKey) ?? false) await startLiveTracking();
+  }
 
-  /// Stop tracking
-  Future<void> stopTracking() async {
-    _foregroundTimer?.cancel();
-    _foregroundTimer = null;
+  Future<void> sendLivePing() async {
+    final outbox = _outbox;
+    if (outbox == null) return;
     try {
-      await Workmanager().cancelByUniqueName(_taskName);
+      await recordPing(outbox);
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos != null && pos.isMocked && !_mockReported) {
+        _mockReported = true;
+        await outbox.addTamper(_tamper(TamperEventDtoEventTypeEnum.MOCK_LOCATION, last: pos));
+      }
+    } catch (e) {
+      debugPrint('[LocationPingService] ping: $e');
+    }
+  }
+
+  void _watchGps() {
+    _gpsStatus?.cancel();
+    try {
+      _gpsStatus = Geolocator.getServiceStatusStream().listen((status) async {
+        if (status == ServiceStatus.disabled) {
+          _gpsOffSince ??= DateTime.now();
+          return;
+        }
+        final since = _gpsOffSince;
+        _gpsOffSince = null;
+        if (since == null) return;
+        await _outbox?.addTamper(_tamper(
+          TamperEventDtoEventTypeEnum.GPS_DISABLED,
+          startedAt: since,
+          resolvedAt: DateTime.now(),
+          last: await Geolocator.getLastKnownPosition(),
+        ));
+        await sendLivePing();
+      });
+    } catch (e) {
+      debugPrint('[LocationPingService] GPS status stream: $e');
+    }
+  }
+
+  /// At check-out or sign-out.
+  Future<void> stopLiveTracking() async {
+    _timer?.cancel();
+    _timer = null;
+    final since = _gpsOffSince;
+    _gpsOffSince = null;
+    if (since != null) {
+      await _outbox?.addTamper(_tamper(TamperEventDtoEventTypeEnum.GPS_DISABLED,
+          startedAt: since, resolvedAt: DateTime.now()));
+    }
+    await _gpsStatus?.cancel();
+    _gpsStatus = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_trackingKey, false);
+    try {
+      await Workmanager().cancelByUniqueName(_pingTask);
     } catch (_) {}
   }
 
-  /// Backward compatible alias for stopTracking
-  Future<void> stopPinging() => stopTracking();
-
-  /// Register periodic offline sync
-  Future<void> registerOfflineSync() async {
+  /// Sends whatever is waiting in the outbox every 15 minutes when online.
+  Future<void> registerOutboxSync() async {
     try {
       await Workmanager().registerPeriodicTask(
-        _syncTaskName,
-        _syncTaskName,
+        _syncTask,
+        _syncTask,
         frequency: const Duration(minutes: 15),
         constraints: Constraints(networkType: NetworkType.connected),
         existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,

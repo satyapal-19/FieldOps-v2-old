@@ -16,6 +16,21 @@ import type { AttendanceStatus } from './attendance-types';
 import { AttendanceLog } from './entities/attendance-log.entity';
 import { LivenessChallenge } from './entities/liveness-challenge.entity';
 
+/** One person's attendance totals over a date range (see staffTotals). */
+export interface StaffTotals {
+  staffId: string;
+  days: number;
+  present: number;
+  late: number;
+  lateMinutes: number;
+  halfDay: number;
+  absent: number;
+  onLeave: number;
+  regularized: number;
+  autoCheckout: number;
+  suspicious: number;
+}
+
 export interface AttendanceFilter {
   /** Logs of these people; undefined = no restriction. */
   staffIds?: readonly string[];
@@ -87,7 +102,9 @@ export class AttendanceRepository {
               w.orWhere(`l.staffId IN (:...s${i})`, { [`s${i}`]: ids.slice(i, i + 1000) });
             }
             for (let i = 0; i < assignments.length; i += 1000) {
-              w.orWhere(`l.assignmentId IN (:...a${i})`, { [`a${i}`]: assignments.slice(i, i + 1000) });
+              w.orWhere(`l.assignmentId IN (:...a${i})`, {
+                [`a${i}`]: assignments.slice(i, i + 1000),
+              });
             }
           }),
         );
@@ -114,6 +131,79 @@ export class AttendanceRepository {
         checkoutAt: IsNull(),
         attendanceDate: LessThanOrEqual(upToDate),
       },
+    });
+  }
+
+  /**
+   * Per-person totals over an inclusive date range (the attendance report), most late days
+   * first. One grouped query; CASE and SUM are portable to Oracle. `wardId` limits it to
+   * logs of that ward.
+   */
+  async staffTotals(
+    filter: { from: string; to: string; wardId: string | null },
+    skip: number,
+    take: number,
+  ): Promise<[StaffTotals[], number]> {
+    const base = () => {
+      const qb = this.logs
+        .createQueryBuilder('l')
+        .where('l.attendanceDate BETWEEN :from AND :to', { from: filter.from, to: filter.to });
+      if (filter.wardId) qb.andWhere('l.wardId = :wardId', { wardId: filter.wardId });
+      return qb;
+    };
+    const lateDays = 'SUM(CASE WHEN l.isLate = 1 THEN 1 ELSE 0 END)';
+    const count = (cond: string) => `SUM(CASE WHEN ${cond} THEN 1 ELSE 0 END)`;
+    const rows = await base()
+      .select('l.staffId', 'staffId')
+      .addSelect('COUNT(*)', 'days')
+      .addSelect(count('l.checkinAt IS NOT NULL'), 'present')
+      .addSelect(lateDays, 'late')
+      .addSelect('SUM(l.lateMinutes)', 'lateMinutes')
+      .addSelect(count('l.status = :halfDay'), 'halfDay')
+      .addSelect(count('l.status = :absent'), 'absent')
+      .addSelect(count('l.status = :onLeave'), 'onLeave')
+      .addSelect(count('l.status = :regularized'), 'regularized')
+      .addSelect(count('l.checkoutType IN (:...autoTypes)'), 'autoCheckout')
+      .addSelect(count('l.isSuspicious = 1'), 'suspicious')
+      .setParameters({
+        halfDay: 'HALF_DAY',
+        absent: 'ABSENT',
+        onLeave: 'ON_LEAVE',
+        regularized: 'REGULARIZED',
+        autoTypes: ['AUTO_GPS_LAST_SEEN', 'AUTO_OFFICE_SCHEDULED'],
+      })
+      .groupBy('l.staffId')
+      .orderBy(lateDays, 'DESC')
+      .addOrderBy('l.staffId', 'ASC')
+      .offset(skip)
+      .limit(take)
+      .getRawMany<Record<keyof StaffTotals, string | number>>();
+    const total = await base()
+      .select('COUNT(DISTINCT l.staffId)', 'n')
+      .getRawOne<{ n: string | number }>();
+    return [
+      rows.map((r) => ({
+        staffId: String(r.staffId),
+        days: Number(r.days),
+        present: Number(r.present),
+        late: Number(r.late),
+        lateMinutes: Number(r.lateMinutes ?? 0),
+        halfDay: Number(r.halfDay),
+        absent: Number(r.absent),
+        onLeave: Number(r.onLeave),
+        regularized: Number(r.regularized),
+        autoCheckout: Number(r.autoCheckout),
+        suspicious: Number(r.suspicious),
+      })),
+      Number(total?.n ?? 0),
+    ];
+  }
+
+  /** One ward's logs over an inclusive date range (the muster roll): who, which day, status. */
+  findForWardBetween(wardId: string, from: string, to: string): Promise<AttendanceLog[]> {
+    return this.logs.find({
+      where: { wardId, attendanceDate: Between(from, to) },
+      select: { staffId: true, attendanceDate: true, status: true },
     });
   }
 

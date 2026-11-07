@@ -45,6 +45,36 @@ JOBS_ENABLED=true
 # How long raw location pings are kept (SMKC policy); daily route summaries stay.
 PING_RETENTION_DAYS=90
 
+# Mobile app versions (Android versionCode): below the minimum the app must update first.
+MOBILE_MIN_VERSION_CODE=1
+MOBILE_LATEST_VERSION_CODE=1
+# Where the update is downloaded from (Play Store or SMKC's own page); optional.
+# MOBILE_UPDATE_URL=
+
+# Uploaded photos (task evidence) stay on this server. Relative paths are from backend/.
+UPLOAD_DIR=storage/uploads
+UPLOAD_MAX_BYTES=2000000
+
+# Notifications. The in-app inbox (polled by the app) always works; these add channels.
+# Firebase Cloud Messaging push (service account; all three or none). Payloads carry no
+# personal data, only "open the app" hints.
+# FCM_PROJECT_ID=
+# FCM_CLIENT_EMAIL=
+# FCM_PRIVATE_KEY=
+# SMS / WhatsApp through SMKC's gateway (JSON POST {to, text}); off unless set.
+# NOTIFY_SMS_URL=
+# NOTIFY_WHATSAPP_URL=
+# NOTIFY_GATEWAY_TOKEN=
+
+# Share of checked-in field staff who get one random spot check per shift (0 = off).
+SPOT_CHECK_DAILY_RATE=0.3
+# Inspector proxy punches must scan the worker's rolling QR code (a code sent is always checked).
+COPRESENCE_REQUIRED=false
+
+# Offline map tiles for the SMKMC area (z/x/y.png + manifest.json, built from OSM data;
+# see backend/README.md). Unset: clients use the public OSM tile server.
+# TILE_DIR=storage/tiles
+
 # Sample seed only (npm run db:seed:dev): password for the web roles (admin, office staff,
 # ward inspectors), 10+ characters with letters and digits. Leave empty for no password.
 # Refused in production.

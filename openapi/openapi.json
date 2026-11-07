@@ -120,16 +120,7 @@
     "/api/v1/auth/otp/verify": {
       "post": {
         "operationId": "AuthController_verifyOtp",
-        "parameters": [
-          {
-            "name": "user-agent",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -191,16 +182,7 @@
     "/api/v1/auth/login": {
       "post": {
         "operationId": "AuthController_login",
-        "parameters": [
-          {
-            "name": "user-agent",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -262,16 +244,7 @@
     "/api/v1/auth/test-login": {
       "post": {
         "operationId": "AuthController_testLogin",
-        "parameters": [
-          {
-            "name": "user-agent",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
@@ -1466,6 +1439,41 @@
         "summary": "Is a point inside the ward or within the 25 m edge allowance?",
         "tags": [
           "wards"
+        ]
+      }
+    },
+    "/api/v1/public/wards": {
+      "get": {
+        "operationId": "PublicWardsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicWardDto"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Active wards with their boundaries (no sign-in)",
+        "tags": [
+          "public"
         ]
       }
     },
@@ -5024,6 +5032,165 @@
         ]
       }
     },
+    "/api/v1/uploads": {
+      "post": {
+        "description": "Retry-safe with clientUuid. Stored on the FieldOps server only.",
+        "operationId": "UploadsController_upload",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file",
+                  "clientUuid",
+                  "kind"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "TASK_PHOTO: JPEG or PNG; VOICE_NOTE: M4A / AAC, Ogg or AMR"
+                  },
+                  "clientUuid": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "TASK_PHOTO",
+                      "VOICE_NOTE"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not a JPEG / PNG, or no file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload a photo (task evidence); returns the key to send as photoKey",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/api/v1/uploads/{id}": {
+      "get": {
+        "operationId": "UploadsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "image/jpeg": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A photo, for its uploader and the people who review their work",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
     "/api/v1/public/complaints": {
       "post": {
         "operationId": "PublicComplaintsController_submit",
@@ -5899,6 +6066,256 @@
         ]
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "NotificationsController_inbox",
+        "parameters": [
+          {
+            "name": "unreadOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "description": "Older than this (paging back)",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 30,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "My inbox, newest first, with the unread count (the app polls this)",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/read": {
+      "post": {
+        "operationId": "NotificationsController_markRead",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkReadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkedDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark some or all of my messages read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/devices/push-token": {
+      "put": {
+        "operationId": "NotificationsController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register this phone's FCM token for my pushes (after sign-in)",
+        "tags": [
+          "notifications"
+        ]
+      },
+      "delete": {
+        "operationId": "NotificationsController_remove",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovePushTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Stop pushes to this phone (before sign-out)",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/attendance/presence-key": {
+      "get": {
+        "operationId": "AttendanceController_presenceKey",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresenceKeyDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "My key for the rolling co-presence code (TOTP) my phone shows when I am marked by proxy",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
     "/api/v1/attendance/challenges": {
       "post": {
         "operationId": "AttendanceController_challenge",
@@ -6519,6 +6936,476 @@
         ]
       }
     },
+    "/api/v1/live/positions": {
+      "get": {
+        "description": "Admin all wards (or one), ward inspector their ward, inspector their team and placements. Poll every 30 s; state ACTIVE / STALE / SILENT / NO_SIGNAL from the last ping.",
+        "operationId": "ReportsController_live",
+        "parameters": [
+          {
+            "name": "wardId",
+            "required": false,
+            "in": "query",
+            "description": "One ward (admins); ward inspectors see their own",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Who is checked in on a field shift right now, with their latest position",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/ward-days": {
+      "get": {
+        "operationId": "ReportsController_wardDays",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "IST date, inclusive",
+            "schema": {
+              "example": "2026-10-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "IST date, inclusive (at most 92 days)",
+            "schema": {
+              "example": "2026-10-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "wardId",
+            "required": false,
+            "in": "query",
+            "description": "One ward (admins); ward inspectors see their own",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WardDaysDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Bad date range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Daily attendance per ward from the nightly summaries (up to 92 days)",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/staff-days": {
+      "get": {
+        "operationId": "ReportsController_staffDays",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "IST date, inclusive",
+            "schema": {
+              "example": "2026-10-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "IST date, inclusive (at most 92 days)",
+            "schema": {
+              "example": "2026-10-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "wardId",
+            "required": false,
+            "in": "query",
+            "description": "One ward (admins); ward inspectors see their own",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffReportDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Bad date range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Per-person late marks, absences, leave and corrections over a range",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/reports/muster-roll": {
+      "get": {
+        "operationId": "ReportsController_musterRoll",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "description": "Calendar month (IST)",
+            "schema": {
+              "example": "2026-11",
+              "type": "string"
+            }
+          },
+          {
+            "name": "wardId",
+            "required": false,
+            "in": "query",
+            "description": "Required for admins; ward inspectors get their own",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "csv",
+              "enum": [
+                "csv",
+                "pdf"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A ward's monthly muster roll: CSV (Marathi names) or printable PDF",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/api/v1/public/wards/{id}/attendance": {
+      "get": {
+        "operationId": "ReportsController_publicWard",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicWardAttendanceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Citizens: staff placed and present in a ward over the last week (counts only)",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
     "/api/v1/face/capture-options": {
       "get": {
         "operationId": "FaceController_captureOptions",
@@ -6553,6 +7440,884 @@
         "summary": "Which face capture flow the app should run (local or Aadhaar FaceRD)",
         "tags": [
           "face"
+        ]
+      }
+    },
+    "/api/v1/spot-checks/mine": {
+      "get": {
+        "operationId": "SpotChecksController_mine",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SpotCheckDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "My spot checks waiting for an answer (poll while on duty)",
+        "tags": [
+          "spot-checks"
+        ]
+      }
+    },
+    "/api/v1/spot-checks/{id}/snooze": {
+      "post": {
+        "operationId": "SpotChecksController_snooze",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotCheckDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "SPOT_CHECK_CLOSED / RULE_VIOLATION",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ask for 10 more minutes, once",
+        "tags": [
+          "spot-checks"
+        ]
+      }
+    },
+    "/api/v1/spot-checks/{id}/respond": {
+      "post": {
+        "description": "A face mismatch can be retried until the deadline; outside the ward is recorded and escalated.",
+        "operationId": "SpotChecksController_respond",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondSpotCheckDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotCheckDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "SPOT_CHECK_CLOSED / FACE_MISMATCH / ...",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Answer: a fresh challenge, the face and where you are (same proof as a punch)",
+        "tags": [
+          "spot-checks"
+        ]
+      }
+    },
+    "/api/v1/spot-checks": {
+      "post": {
+        "operationId": "SpotChecksController_order",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderSpotCheckDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotCheckDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "One is already waiting",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "NOT_CHECKED_IN",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Order a spot check now for someone on duty in your scope",
+        "tags": [
+          "spot-checks"
+        ]
+      },
+      "get": {
+        "operationId": "SpotChecksController_list",
+        "parameters": [
+          {
+            "name": "date",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-11-02",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "SCHEDULED",
+                "NOTIFIED",
+                "SNOOZED",
+                "VERIFIED",
+                "MISSED",
+                "FACE_MISMATCH",
+                "OUT_OF_GEOFENCE",
+                "UNREACHABLE",
+                "CANCELLED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotCheckPageDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Spot checks in your scope (admin all, ward inspector ward, inspector team)",
+        "tags": [
+          "spot-checks"
+        ]
+      }
+    },
+    "/api/v1/chat/conversations": {
+      "get": {
+        "operationId": "ChatController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConversationDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "My conversations (joins today's squad / ward channels), newest first",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/v1/chat/conversations/{id}/messages": {
+      "get": {
+        "operationId": "ChatController_messages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "required": false,
+            "in": "query",
+            "description": "Older than this (paging back)",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MessageDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Messages, newest first (page back with before)",
+        "tags": [
+          "chat"
+        ]
+      },
+      "post": {
+        "operationId": "ChatController_send",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "A broadcast you cannot post to",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a text, voice note, photo or location (retry-safe with clientUuid)",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/v1/chat/conversations/{id}/read": {
+      "post": {
+        "operationId": "ChatController_read",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark the conversation read up to now",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/v1/chat/direct": {
+      "post": {
+        "operationId": "ChatController_direct",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DirectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Open (or reuse) a direct conversation along the hierarchy",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/v1/chat/messages/{id}/media": {
+      "get": {
+        "operationId": "ChatController_media",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "audio/mp4": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/ogg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "audio/amr": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/jpeg": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "A message's voice note or photo, for the conversation's members",
+        "tags": [
+          "chat"
+        ]
+      }
+    },
+    "/api/v1/tiles/manifest": {
+      "get": {
+        "operationId": "TilesController_manifest",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TileManifestDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Whether an offline tile pack is installed, and its zooms and bounds",
+        "tags": [
+          "tiles"
+        ]
+      }
+    },
+    "/api/v1/tiles/{z}/{x}/{y}.png": {
+      "get": {
+        "operationId": "TilesController_tile",
+        "parameters": [
+          {
+            "name": "z",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "x",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "y",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "summary": "One map tile from the offline pack (404 when not in the pack)",
+        "tags": [
+          "tiles"
+        ]
+      }
+    },
+    "/api/v1/public/app-config": {
+      "get": {
+        "operationId": "AppInfoController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppInfoDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Mobile start-up settings: minimum version, face flow, ping cadence, server time",
+        "tags": [
+          "public"
         ]
       }
     }
@@ -6675,6 +8440,8 @@
           "CHALLENGE_INVALID",
           "CHALLENGE_EXPIRED",
           "FACE_MISMATCH",
+          "SPOT_CHECK_CLOSED",
+          "COPRESENCE_FAILED",
           "FACE_PROVIDER_UNAVAILABLE",
           "FACE_NOT_ENROLLED",
           "AADHAAR_CAPTURE_FAILED",
@@ -7408,6 +9175,46 @@
           "inside",
           "withinTolerance",
           "distanceToEdgeMeters"
+        ]
+      },
+      "PublicWardDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "example": "W04"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nameMr": {
+            "type": "string"
+          },
+          "zone": {
+            "type": "string",
+            "enum": [
+              "SANGLI",
+              "MIRAJ",
+              "KUPWAD"
+            ]
+          },
+          "boundary": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "GeoJSON Polygon"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "nameMr",
+          "zone",
+          "boundary"
         ]
       },
       "OfficeDto": {
@@ -8847,6 +10654,46 @@
           "assignedToId"
         ]
       },
+      "UploadDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Pass as photoKey on a task update, or as a voice message key"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "TASK_PHOTO",
+              "VOICE_NOTE"
+            ]
+          },
+          "contentType": {
+            "type": "string",
+            "example": "image/jpeg"
+          },
+          "sizeBytes": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replayed": {
+            "type": "boolean",
+            "description": "True when this clientUuid was already uploaded (a retry)"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "contentType",
+          "sizeBytes",
+          "createdAt",
+          "replayed"
+        ]
+      },
       "SubmitComplaintDto": {
         "type": "object",
         "properties": {
@@ -9251,6 +11098,177 @@
           }
         }
       },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "SPOT_CHECK",
+              "ALERT",
+              "TASK",
+              "CHAT",
+              "REQUEST",
+              "SYSTEM"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "NORMAL"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "titleMr": {
+            "type": "string",
+            "nullable": true
+          },
+          "body": {
+            "type": "string",
+            "nullable": true
+          },
+          "bodyMr": {
+            "type": "string",
+            "nullable": true
+          },
+          "refType": {
+            "type": "string",
+            "nullable": true
+          },
+          "refId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "priority",
+          "title",
+          "titleMr",
+          "body",
+          "bodyMr",
+          "refType",
+          "refId",
+          "createdAt",
+          "readAt"
+        ]
+      },
+      "InboxDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Newest first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            }
+          },
+          "unreadCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "unreadCount"
+        ]
+      },
+      "MarkReadDto": {
+        "type": "object",
+        "properties": {
+          "ids": {
+            "description": "These messages; omit with all=true",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "all": {
+            "type": "boolean",
+            "description": "Mark every unread message read"
+          }
+        }
+      },
+      "MarkedDto": {
+        "type": "object",
+        "properties": {
+          "marked": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "marked"
+        ]
+      },
+      "PushTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "FCM registration token of this phone"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "ANDROID",
+              "IOS"
+            ]
+          }
+        },
+        "required": [
+          "token",
+          "platform"
+        ]
+      },
+      "RemovePushTokenDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "PresenceKeyDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Base64 key: compute TOTP codes offline (HMAC-SHA1, 6 digits)"
+          },
+          "periodSeconds": {
+            "type": "number",
+            "example": 30
+          },
+          "digits": {
+            "type": "number",
+            "example": 6
+          }
+        },
+        "required": [
+          "key",
+          "periodSeconds",
+          "digits"
+        ]
+      },
       "CreateChallengeDto": {
         "type": "object",
         "properties": {
@@ -9334,6 +11352,11 @@
             "type": "number",
             "example": 12.5,
             "description": "GPS accuracy in metres (field ≤ 25, office ≤ 100)"
+          },
+          "presenceCode": {
+            "type": "string",
+            "example": "492039",
+            "description": "Proxy punch: the worker's rolling code scanned from their phone (co-presence)"
           },
           "isMocked": {
             "type": "boolean",
@@ -9981,6 +12004,297 @@
           "tamperEvents"
         ]
       },
+      "LivePositionDto": {
+        "type": "object",
+        "properties": {
+          "staffId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attendanceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wardId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-11-02"
+          },
+          "checkinAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "STALE",
+              "SILENT",
+              "NO_SIGNAL"
+            ]
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "nullable": true,
+            "description": "Last ping, else the check-in point"
+          },
+          "longitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "accuracyM": {
+            "type": "number",
+            "nullable": true
+          },
+          "inWard": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isMocked": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "staffId",
+          "attendanceId",
+          "wardId",
+          "date",
+          "checkinAt",
+          "state",
+          "lastSeenAt",
+          "latitude",
+          "longitude",
+          "accuracyM",
+          "inWard",
+          "isMocked"
+        ]
+      },
+      "LiveDto": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Server time of this snapshot"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LivePositionDto"
+            }
+          }
+        },
+        "required": [
+          "at",
+          "items"
+        ]
+      },
+      "WardDayReportDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-11-01"
+          },
+          "wardId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assignedCount": {
+            "type": "number"
+          },
+          "presentCount": {
+            "type": "number"
+          },
+          "lateCount": {
+            "type": "number"
+          },
+          "halfDayCount": {
+            "type": "number"
+          },
+          "absentCount": {
+            "type": "number"
+          },
+          "onLeaveCount": {
+            "type": "number"
+          },
+          "proxyCount": {
+            "type": "number"
+          },
+          "autoCheckoutCount": {
+            "type": "number"
+          },
+          "suspiciousCount": {
+            "type": "number"
+          },
+          "distanceM": {
+            "type": "number",
+            "description": "Trusted distance walked by the ward team, metres"
+          }
+        },
+        "required": [
+          "date",
+          "wardId",
+          "assignedCount",
+          "presentCount",
+          "lateCount",
+          "halfDayCount",
+          "absentCount",
+          "onLeaveCount",
+          "proxyCount",
+          "autoCheckoutCount",
+          "suspiciousCount",
+          "distanceM"
+        ]
+      },
+      "WardDaysDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Newest first; from the nightly summaries",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WardDayReportDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "StaffReportRowDto": {
+        "type": "object",
+        "properties": {
+          "staffId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "days": {
+            "type": "number",
+            "description": "Days with an attendance row"
+          },
+          "present": {
+            "type": "number",
+            "description": "Days with a check-in"
+          },
+          "late": {
+            "type": "number"
+          },
+          "lateMinutes": {
+            "type": "number"
+          },
+          "halfDay": {
+            "type": "number"
+          },
+          "absent": {
+            "type": "number"
+          },
+          "onLeave": {
+            "type": "number"
+          },
+          "regularized": {
+            "type": "number"
+          },
+          "autoCheckout": {
+            "type": "number"
+          },
+          "suspicious": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "staffId",
+          "days",
+          "present",
+          "late",
+          "lateMinutes",
+          "halfDay",
+          "absent",
+          "onLeave",
+          "regularized",
+          "autoCheckout",
+          "suspicious"
+        ]
+      },
+      "StaffReportDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "Most late days first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StaffReportRowDto"
+            }
+          },
+          "page": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ]
+      },
+      "PublicWardDayDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-11-01"
+          },
+          "assignedCount": {
+            "type": "number"
+          },
+          "presentCount": {
+            "type": "number"
+          },
+          "onLeaveCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "assignedCount",
+          "presentCount",
+          "onLeaveCount"
+        ]
+      },
+      "PublicWardAttendanceDto": {
+        "type": "object",
+        "properties": {
+          "wardId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "days": {
+            "description": "The last 7 summarised days, newest first",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicWardDayDto"
+            }
+          }
+        },
+        "required": [
+          "wardId",
+          "days"
+        ]
+      },
       "FaceCaptureOptionsDto": {
         "type": "object",
         "properties": {
@@ -10014,6 +12328,474 @@
         "required": [
           "provider",
           "instructions"
+        ]
+      },
+      "SpotCheckDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "staffId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "wardId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-11-02"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "RANDOM",
+              "SENIOR_MANUAL"
+            ]
+          },
+          "initiatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SCHEDULED",
+              "NOTIFIED",
+              "SNOOZED",
+              "VERIFIED",
+              "MISSED",
+              "FACE_MISMATCH",
+              "OUT_OF_GEOFENCE",
+              "UNREACHABLE",
+              "CANCELLED"
+            ]
+          },
+          "notifiedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dueAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Answer by this time"
+          },
+          "snoozed": {
+            "type": "boolean"
+          },
+          "respondedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "inGeofence": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "faceScore": {
+            "type": "number",
+            "nullable": true
+          },
+          "escalatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "version": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "staffId",
+          "wardId",
+          "date",
+          "trigger",
+          "initiatedById",
+          "reason",
+          "status",
+          "notifiedAt",
+          "dueAt",
+          "snoozed",
+          "respondedAt",
+          "inGeofence",
+          "faceScore",
+          "escalatedAt",
+          "version"
+        ]
+      },
+      "RespondSpotCheckDto": {
+        "type": "object",
+        "properties": {
+          "clientUuid": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Retry-safe: the same one answers once"
+          },
+          "challengeId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "From POST /attendance/challenges"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          },
+          "accuracyM": {
+            "type": "number",
+            "description": "GPS accuracy, metres"
+          },
+          "faceImageBase64": {
+            "type": "string",
+            "description": "JPEG face crop (FACE_PROVIDER=local)"
+          },
+          "aadhaarPidXml": {
+            "type": "string",
+            "description": "Aadhaar FaceRD PID block (FACE_PROVIDER=aadhaar)"
+          },
+          "aadhaarTxn": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientUuid",
+          "challengeId",
+          "latitude",
+          "longitude",
+          "accuracyM"
+        ]
+      },
+      "OrderSpotCheckDto": {
+        "type": "object",
+        "properties": {
+          "staffId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Someone on duty in your scope"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Not seen at the market beat since 9"
+          }
+        },
+        "required": [
+          "staffId"
+        ]
+      },
+      "SpotCheckPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpotCheckDto"
+            }
+          },
+          "page": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ]
+      },
+      "ConversationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "DIRECT",
+              "SQUAD_TEAM",
+              "WARD_BROADCAST",
+              "CITY_BROADCAST"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "wardId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "inspectorId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "nullable": true,
+            "example": "2026-11-02"
+          },
+          "archived": {
+            "type": "boolean",
+            "description": "Read-only (a past squad chat)"
+          },
+          "canPost": {
+            "type": "boolean",
+            "description": "Whether you may post here (broadcasts are one-way)"
+          },
+          "memberIds": {
+            "description": "Active members (staff ids)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "unread": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "title",
+          "wardId",
+          "inspectorId",
+          "date",
+          "archived",
+          "canPost",
+          "memberIds",
+          "lastMessageAt",
+          "unread"
+        ]
+      },
+      "MessageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "VOICE",
+              "IMAGE",
+              "LOCATION"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "hasMedia": {
+            "type": "boolean",
+            "description": "Voice note or photo attached (GET /chat/messages/{id}/media)"
+          },
+          "durationSec": {
+            "type": "number",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "conversationId",
+          "senderId",
+          "type",
+          "text",
+          "hasMedia",
+          "durationSec",
+          "latitude",
+          "longitude",
+          "createdAt"
+        ]
+      },
+      "SendMessageDto": {
+        "type": "object",
+        "properties": {
+          "clientUuid": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Made on the phone: a retry sends once"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "VOICE",
+              "IMAGE",
+              "LOCATION"
+            ]
+          },
+          "text": {
+            "type": "string",
+            "description": "TEXT"
+          },
+          "uploadId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "VOICE / IMAGE: your upload (POST /uploads)"
+          },
+          "durationSec": {
+            "type": "number",
+            "description": "VOICE: length in seconds"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "clientUuid",
+          "type"
+        ]
+      },
+      "DirectDto": {
+        "type": "object",
+        "properties": {
+          "staffId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "staffId"
+        ]
+      },
+      "TileManifestDto": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "description": "False when no offline pack is installed (use the public OSM server)"
+          },
+          "minZoom": {
+            "type": "number",
+            "nullable": true
+          },
+          "maxZoom": {
+            "type": "number",
+            "nullable": true
+          },
+          "bounds": {
+            "nullable": true,
+            "description": "[west, south, east, north] of the pack",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "attribution": {
+            "type": "string",
+            "example": "© OpenStreetMap contributors"
+          },
+          "builtAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "When the pack was built"
+          }
+        },
+        "required": [
+          "available",
+          "minZoom",
+          "maxZoom",
+          "bounds",
+          "attribution",
+          "builtAt"
+        ]
+      },
+      "AppInfoDto": {
+        "type": "object",
+        "properties": {
+          "minVersionCode": {
+            "type": "number",
+            "description": "Android versionCode below which the app must update before use"
+          },
+          "latestVersionCode": {
+            "type": "number",
+            "description": "Newest versionCode; above the minimum the update is optional"
+          },
+          "updateUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "faceProvider": {
+            "type": "string",
+            "enum": [
+              "local",
+              "aadhaar"
+            ],
+            "description": "Which face capture flow to prepare"
+          },
+          "pingIntervalSeconds": {
+            "type": "number",
+            "description": "Seconds between location pings while on duty"
+          },
+          "silentGapMinutes": {
+            "type": "number",
+            "description": "No ping for this long during a shift raises a silent-gap alert"
+          },
+          "serverTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Server time (UTC): the app shows a wrong phone clock"
+          }
+        },
+        "required": [
+          "minVersionCode",
+          "latestVersionCode",
+          "faceProvider",
+          "pingIntervalSeconds",
+          "silentGapMinutes",
+          "serverTime"
         ]
       }
     }

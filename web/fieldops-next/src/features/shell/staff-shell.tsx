@@ -8,6 +8,7 @@ import { CSRF_HEADERS } from '@/api/client';
 import { menuFor, type WebRole } from '@/shared/auth/route-table';
 import { useLocale } from '@/shared/i18n/locale';
 import { LanguageSwitch } from '@/shared/ui/language-switch';
+import { InboxBell } from './inbox-bell';
 import { RoleProvider } from './role-context';
 import { useMe } from './use-me';
 
@@ -58,6 +59,7 @@ export function StaffShell({ role, children }: { role: WebRole; children: ReactN
           <span className="text-slate-600">
             {me.data ? pick({ en: me.data.fullName, mr: me.data.fullNameMr }) : ''}
           </span>
+          <InboxBell />
           <LanguageSwitch />
           <button
             type="button"

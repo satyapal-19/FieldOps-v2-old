@@ -96,6 +96,14 @@ export class CreatePunchDto {
   @Max(10_000)
   accuracyM: number;
 
+  @ApiPropertyOptional({
+    example: '492039',
+    description: "Proxy punch: the worker's rolling code scanned from their phone (co-presence)",
+  })
+  @IsOptional()
+  @Matches(/^\d{6}$/)
+  presenceCode?: string;
+
   @ApiPropertyOptional({ description: 'The phone reported a mock location (recorded, flagged)' })
   @IsOptional()
   @IsBoolean()
@@ -202,4 +210,11 @@ export class AttendancePageDto {
   @ApiProperty() page: number;
   @ApiProperty() pageSize: number;
   @ApiProperty() total: number;
+}
+
+export class PresenceKeyDto {
+  @ApiProperty({ description: 'Base64 key: compute TOTP codes offline (HMAC-SHA1, 6 digits)' })
+  key: string;
+  @ApiProperty({ example: 30 }) periodSeconds: number;
+  @ApiProperty({ example: 6 }) digits: number;
 }

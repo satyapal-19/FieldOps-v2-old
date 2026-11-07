@@ -1,135 +1,96 @@
-import 'dart:convert';
+import 'package:fieldops_api/fieldops_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
+
+import '../api/api_failure.dart';
+import '../api/api_service.dart';
+import '../api/env.dart';
 import '../routes/app_routes.dart';
 import '../services/location_ping_service.dart';
 import '../../features/attendance/controllers/attendance_controller.dart';
 
+/// Sign-in by OTP through `/auth/otp/*`, the signed-in profile and sign-out.
+/// Tokens live in the keystore (SessionManager); only the profile, which holds
+/// no secret, is cached in SharedPreferences so the app opens offline.
 class AuthController extends GetxController {
-  final _supabase = Supabase.instance.client;
+  static const _profileKey = 'cached_staff_profile_v2';
+  static const _wardKey = 'cached_ward_v2';
+  static const _deviceKey = 'device_id';
+
   final _localAuth = LocalAuthentication();
+
+  ApiService get _api => Get.find<ApiService>();
 
   final isLoading = false.obs;
   final isAuthenticated = false.obs;
   final isBiometricAvailable = false.obs;
-  final Rx<Map<String, dynamic>?> currentStaff = Rx(null);
-  final isDemoMode = false.obs;
+  final Rx<StaffProfileDto?> profile = Rx(null);
+  final Rx<WardDto?> homeWard = Rx(null);
+
+  /// Seconds until the OTP expires, from the last request.
+  final otpExpiresIn = 0.obs;
 
   @override
   void onInit() {
     super.onInit();
+    _api.session.onExpired = _onSessionExpired;
     _checkBiometricAvailability();
   }
 
   Future<void> _checkBiometricAvailability() async {
     try {
       final available = await _localAuth.canCheckBiometrics;
-      final isDeviceSupported = await _localAuth.isDeviceSupported();
-      isBiometricAvailable.value = available || isDeviceSupported;
+      final supported = await _localAuth.isDeviceSupported();
+      isBiometricAvailable.value = available || supported;
     } catch (e) {
       debugPrint('Biometric availability check: $e');
       isBiometricAvailable.value = false;
     }
   }
 
+  /// Splash: signed in (tokens in the keystore) → app lock, else sign-in.
   Future<void> checkExistingSession() async {
-    try {
-      // Check cached staff profile (works offline)
-      final prefs = await SharedPreferences.getInstance();
-      final cachedStaffJson = prefs.getString('cached_staff_profile');
-      if (cachedStaffJson != null && cachedStaffJson.isNotEmpty) {
-        try {
-          final decoded =
-              jsonDecode(cachedStaffJson) as Map<String, dynamic>;
-          currentStaff.value = decoded;
-          isAuthenticated.value = true;
-          await _checkBiometricAvailability();
-          Get.offAllNamed(AppRoutes.biometricLock);
-          return;
-        } catch (e) {
-          debugPrint('Cached profile decode error: $e');
-          await prefs.remove('cached_staff_profile');
-        }
-      }
-    } catch (e) {
-      debugPrint('SharedPreferences error: $e');
+    if (!await _api.session.hasSession) {
+      Get.offAllNamed(AppRoutes.otpLogin);
+      return;
     }
-
-    // Check live Supabase session
-    try {
-      final session = _supabase.auth.currentSession;
-      if (session != null) {
-        await _loadStaffProfile();
-        await _checkBiometricAvailability();
-        Get.offAllNamed(AppRoutes.biometricLock);
-        return;
-      }
-    } catch (e) {
-      debugPrint('Session check error: $e');
-    }
-
-    Get.offAllNamed(AppRoutes.otpLogin);
+    final prefs = await SharedPreferences.getInstance();
+    profile.value = _api.decode(StaffProfileDto.serializer, prefs.getString(_profileKey));
+    homeWard.value = _api.decode(WardDto.serializer, prefs.getString(_wardKey));
+    isAuthenticated.value = true;
+    await _checkBiometricAvailability();
+    Get.offAllNamed(AppRoutes.biometricLock);
+    // Fresh profile in the background (role, ward or shift may have changed).
+    refreshProfile();
   }
 
-  // ── OTP Auth ──────────────────────────────────────────────
+  // ── OTP ────────────────────────────────────────────────────
+
+  static String? tenDigits(String phone) {
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 10) return null;
+    return digits.substring(digits.length - 10);
+  }
 
   Future<bool> sendOtp(String phone) async {
+    final last10 = tenDigits(phone);
+    if (last10 == null) {
+      _showError('invalid_phone'.tr);
+      return false;
+    }
     isLoading.value = true;
     try {
-      final digits = phone.replaceAll(RegExp(r'\D'), '');
-      if (digits.length < 10) {
-        _showError('कृपया वैध १०-अंकी मोबाइल नंबर प्रविष्ट करा');
-        return false;
-      }
-      final last10 = digits.substring(digits.length - 10);
-      final normalizedPhone = '+91$last10';
-
-      // Check if phone exists in staff table
-      bool staffFound = false;
-      try {
-        final staffData = await _supabase
-            .from('staff')
-            .select('id, name, name_mr')
-            .or('phone.eq.$normalizedPhone,phone.eq.$last10')
-            .maybeSingle();
-
-        if (staffData != null) {
-          staffFound = true;
-          isDemoMode.value = true;
-          _showSuccess(
-            'OTP पाठवला (डेमो)',
-            'डेमो कोड: 123456 प्रविष्ट करा (${staffData['name_mr'] ?? staffData['name']})',
-          );
-          return true;
-        }
-      } catch (e) {
-        debugPrint('Staff lookup note: $e');
-      }
-
-      // Try real Supabase OTP
-      if (!staffFound) {
-        try {
-          await _supabase.auth.signInWithOtp(phone: normalizedPhone);
-          _showSuccess('OTP पाठवला', '$last10 वर OTP पाठवला आहे');
-          return true;
-        } catch (e) {
-          debugPrint('Supabase OTP note: $e');
-          // Fall through to demo mode
-        }
-      }
-
-      // Demo mode fallback (SMS provider not configured)
-      isDemoMode.value = true;
-      _showSuccess(
-        'डेमो मोड सक्रिय',
-        'चाचणीसाठी OTP: 123456 वापरा',
+      final res = await _api.auth.authControllerRequestOtp(
+        otpRequestDto: OtpRequestDto((b) => b..phone = last10),
       );
+      otpExpiresIn.value = res.data?.expiresInSeconds.toInt() ?? 300;
+      _showSuccess('otp_sent'.tr, 'otp_sent_to'.trParams({'phone': last10}));
       return true;
     } catch (e) {
-      _showError(e.toString());
+      _showFailure(e);
       return false;
     } finally {
       isLoading.value = false;
@@ -137,234 +98,140 @@ class AuthController extends GetxController {
   }
 
   Future<void> verifyOtp(String phone, String otp) async {
+    final last10 = tenDigits(phone);
+    if (last10 == null) return _showError('invalid_phone'.tr);
     isLoading.value = true;
     try {
-      final digits = phone.replaceAll(RegExp(r'\D'), '');
-      final last10 =
-          digits.length >= 10 ? digits.substring(digits.length - 10) : digits;
-      final normalizedPhone = '+91$last10';
-
-      // Demo OTP: 123456
-      if (otp.trim() == '123456') {
-        await _handleDemoLogin(normalizedPhone, last10);
-        return;
-      }
-
-      // Real Supabase OTP verification
-      try {
-        final response = await _supabase.auth.verifyOTP(
-          phone: normalizedPhone,
-          token: otp.trim(),
-          type: OtpType.sms,
-        );
-        if (response.session != null) {
-          await _loadStaffProfile();
-          Get.offAllNamed(AppRoutes.mainShell);
-          return;
-        }
-      } on AuthException catch (e) {
-        // If Supabase auth fails but demo mode is on, try demo path
-        if (isDemoMode.value) {
-          await _handleDemoLogin(normalizedPhone, last10);
-          return;
-        }
-        _showError('OTP चुकीचा: ${e.message}');
-      }
+      final deviceId = await _deviceId();
+      final res = await _api.auth.authControllerVerifyOtp(
+        userAgent: 'FieldOps-Android/${Env.versionCode}',
+        otpVerifyDto: OtpVerifyDto((b) => b
+          ..phone = last10
+          ..code = otp.trim()
+          ..deviceId = deviceId),
+      );
+      await _startSession(res.data!);
     } catch (e) {
-      _showError(e.toString());
+      _showFailure(e);
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> _handleDemoLogin(
-      String normalizedPhone, String last10) async {
-    // Try to find staff by phone in database
-    try {
-      final staffData = await _supabase
-          .from('staff')
-          .select('*, wards(*)')
-          .or('phone.eq.$normalizedPhone,phone.eq.$last10')
-          .maybeSingle();
-      if (staffData != null) {
-        await _saveAndLoginStaff(staffData);
-        return;
-      }
-    } catch (e) {
-      debugPrint('Demo staff lookup: $e');
+  Future<String> _deviceId() async {
+    final prefs = await SharedPreferences.getInstance();
+    var id = prefs.getString(_deviceKey);
+    if (id == null) {
+      id = const Uuid().v4();
+      await prefs.setString(_deviceKey, id);
     }
-
-    // Try any staff record
-    try {
-      final anyStaff = await _supabase
-          .from('staff')
-          .select('*, wards(*)')
-          .limit(1)
-          .maybeSingle();
-      if (anyStaff != null) {
-        final modified = Map<String, dynamic>.from(anyStaff);
-        modified['phone'] = normalizedPhone;
-        await _saveAndLoginStaff(modified);
-        return;
-      }
-    } catch (e) {
-      debugPrint('Any staff lookup: $e');
-    }
-
-    // Ultimate fallback — local mock profile
-    await _saveAndLoginStaff(_buildMockStaff(normalizedPhone));
+    return id;
   }
 
-  Map<String, dynamic> _buildMockStaff(String phone) => {
-        'id': '20000000-0000-0000-0000-000000000011',
-        'employee_id': 'SMK-4001',
-        'smkmc_id': 'SMK-4001',
-        'name': 'Ramesh Vishnu Patil',
-        'name_mr': 'रमेश विष्णू पाटील',
-        'phone': phone,
-        'role': 'WORKER',
-        'department': 'SANITATION',
-        'designation': 'Safai Kamgar',
-        'shift': 'MORNING',
-        'shift_start': '06:00:00',
-        'shift_end': '14:00:00',
-        'profile_photo_url': null,
-        'ward_id': '11111111-0000-0000-0000-000000000004',
-        'wards': {
-          'id': '11111111-0000-0000-0000-000000000004',
-          'ward_name': 'Ward 4 - Walchand College Campus (WCE), Vishrambag',
-          'ward_name_mr': 'प्रभाग ४ - वालचंद महाविद्यालय परिसर (WCE)',
-          'ward_number': 4,
-          'zone': 'SANGLI',
-          'boundary': {
-            'type': 'Polygon',
-            'coordinates': [
-              [
-                [74.6008, 16.8431],
-                [74.6032, 16.8431],
-                [74.6032, 16.8455],
-                [74.6008, 16.8455],
-                [74.6008, 16.8431]
-              ]
-            ]
-          }
-        },
-      };
-
-  Future<void> loginAsDemo(Map<String, dynamic> staff) async {
-    isLoading.value = true;
-    try {
-      await _saveAndLoginStaff(staff);
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> _saveAndLoginStaff(Map<String, dynamic> staff) async {
-    currentStaff.value = staff;
+  Future<void> _startSession(SessionTokensDto tokens) async {
+    await _api.session.save(ApiService.sessionFromTokens(tokens));
+    await _setProfile(tokens.staff);
     isAuthenticated.value = true;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('cached_staff_profile', jsonEncode(staff));
-    } catch (e) {
-      debugPrint('Cache staff error: $e');
+
+    if (Get.isRegistered<AttendanceController>()) {
+      Get.find<AttendanceController>().loadToday();
     }
-
-    // Reload attendance for newly logged-in staff
-    try {
-      if (Get.isRegistered<AttendanceController>()) {
-        Get.find<AttendanceController>().loadTodayAttendance();
-      }
-    } catch (_) {}
-
-    // Immediately capture live GPS and start 10-minute periodic tracking for this staff
-    try {
-      LocationPingService().startLiveTracking(staffId: staff['id']?.toString());
-    } catch (e) {
-      debugPrint('Live tracking start note: $e');
-    }
-
     Get.offAllNamed(AppRoutes.mainShell);
   }
 
-  // ── Biometric Lock ────────────────────────────────────────
+  Future<void> refreshProfile() async {
+    try {
+      final res = await _api.auth.authControllerMe();
+      await _setProfile(res.data!);
+    } catch (e) {
+      debugPrint('Profile refresh: $e');
+    }
+  }
+
+  Future<void> _setProfile(StaffProfileDto staff) async {
+    profile.value = staff;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_profileKey, _api.encode(StaffProfileDto.serializer, staff));
+    final wardId = staff.homeWardId;
+    if (wardId == null) {
+      homeWard.value = null;
+      await prefs.remove(_wardKey);
+      return;
+    }
+    if (homeWard.value?.id == wardId) return;
+    try {
+      final ward = (await _api.wards.wardsControllerGet(id: wardId)).data!;
+      homeWard.value = ward;
+      await prefs.setString(_wardKey, _api.encode(WardDto.serializer, ward));
+    } catch (e) {
+      debugPrint('Ward load: $e');
+    }
+  }
+
+  // ── App lock (device biometric / PIN; not attendance proof) ─
 
   Future<bool> authenticateWithBiometric() async {
     try {
-      final isSupported = await _localAuth.isDeviceSupported();
+      final supported = await _localAuth.isDeviceSupported();
       final canCheck = await _localAuth.canCheckBiometrics;
-
-      // If device has no biometric hardware at all, return true (skip step)
-      if (!isSupported && !canCheck) {
-        debugPrint('No biometric hardware — skipping biometric step');
-        return true; // allow through without blocking check-in
-      }
-
-      final authenticated = await _localAuth.authenticate(
-        localizedReason:
-            'FieldOps SMKMC: उपस्थिती नोंदवण्यासाठी ओळख द्या',
+      // No screen lock on this phone: nothing to unlock with.
+      if (!supported && !canCheck) return true;
+      return await _localAuth.authenticate(
+        localizedReason: 'biometric_reason'.tr,
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: false, // allow PIN/pattern as fallback
+          biometricOnly: false,
           useErrorDialogs: true,
-          sensitiveTransaction: false,
         ),
       );
-      return authenticated;
     } catch (e) {
       debugPrint('Biometric auth error: $e');
-      // Return true on error to not block check-in flow
-      // (real device issues get logged, check-in still proceeds)
-      return true;
+      return false;
     }
   }
 
-  Future<bool> authenticateFaceOnly() async {
-    return authenticateWithBiometric();
-  }
-
-  // ── Profile ───────────────────────────────────────────────
-
-  Future<void> _loadStaffProfile() async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
-    try {
-      final data = await _supabase
-          .from('staff')
-          .select('*, wards(*)')
-          .or('auth_id.eq.$userId,id.eq.$userId')
-          .maybeSingle();
-      if (data != null) {
-        currentStaff.value = data;
-        isAuthenticated.value = true;
-        try {
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('cached_staff_profile', jsonEncode(data));
-        } catch (_) {}
-      }
-    } catch (e) {
-      debugPrint('_loadStaffProfile error: $e');
-    }
-  }
+  // ── Sign-out ───────────────────────────────────────────────
 
   Future<void> signOut() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('cached_staff_profile');
-    } catch (_) {}
-    try {
-      await _supabase.auth.signOut();
-    } catch (_) {}
-    currentStaff.value = null;
-    isAuthenticated.value = false;
+      await _api.auth.authControllerLogout(logoutDto: LogoutDto());
+    } catch (e) {
+      debugPrint('Logout call: $e');
+    }
+    await _clearLocal();
     Get.offAllNamed(AppRoutes.otpLogin);
   }
 
-  // ── Helpers ───────────────────────────────────────────────
+  /// The server refused the refresh token (signed out elsewhere, revoked or
+  /// expired): remote logout lands here.
+  void _onSessionExpired() {
+    _clearLocal();
+    if (Get.currentRoute != AppRoutes.otpLogin) {
+      Get.offAllNamed(AppRoutes.otpLogin);
+      _showError(ErrorMessages.text(ApiCodes.unauthenticated, lang));
+    }
+  }
+
+  Future<void> _clearLocal() async {
+    LocationPingService().stopLiveTracking();
+    await _api.session.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_profileKey);
+    await prefs.remove(_wardKey);
+    profile.value = null;
+    homeWard.value = null;
+    isAuthenticated.value = false;
+  }
+
+  // ── Helpers ────────────────────────────────────────────────
+
+  static String get lang => Get.locale?.languageCode == 'mr' ? 'mr' : 'en';
+
+  void _showFailure(Object e) => _showError(ApiFailure.from(e).message(lang));
 
   void _showError(String msg) {
     Get.snackbar(
-      'त्रुटी',
+      'error'.tr,
       msg,
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.red.shade700,
@@ -385,18 +252,18 @@ class AuthController extends GetxController {
   }
 
   // Convenience getters
-  String get staffName => currentStaff.value?['name'] as String? ?? '';
-  String get staffNameMr =>
-      currentStaff.value?['name_mr'] as String? ?? staffName;
-  String get staffRole => currentStaff.value?['role'] as String? ?? 'WORKER';
+  String? get staffId => profile.value?.id;
+  String get staffName => profile.value?.fullName ?? '';
+  String get staffNameMr => profile.value?.fullNameMr ?? staffName;
+  String get displayName => lang == 'mr' ? staffNameMr : staffName;
+  String get staffRole => profile.value?.role.name ?? 'WORKER';
   String get wardName =>
-      currentStaff.value?['wards']?['ward_name'] as String? ?? '';
-  String get department =>
-      currentStaff.value?['department'] as String? ?? '';
+      (lang == 'mr' ? homeWard.value?.nameMr : homeWard.value?.name) ?? '';
+  String get department => profile.value?.department ?? '';
+  String get employeeCode => profile.value?.employeeCode ?? '';
+  String get phone => profile.value?.phone ?? '';
+  bool get isOfficeStaff => staffRole == 'OFFICE_STAFF';
   bool get isAdmin => staffRole == 'ADMIN';
   bool get isSupervisor =>
-      staffRole == 'ADMIN' ||
-      staffRole == 'WARD_INSPECTOR' ||
-      staffRole == 'INSPECTOR' ||
-      staffRole == 'SUPERVISOR';
+      staffRole == 'ADMIN' || staffRole == 'WARD_INSPECTOR' || staffRole == 'INSPECTOR';
 }

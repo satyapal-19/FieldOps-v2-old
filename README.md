@@ -20,8 +20,7 @@ for a one-page summary of decisions and status. AI coding assistants read `CLAUD
 ```
 FieldOps/
 ├── backend/                  # NestJS REST API (new) - see backend/README.md
-├── web/fieldops-next/        # Next.js dashboard + citizen portal (new)
-├── web/fieldops-web/         # Legacy React + Vite app (Supabase) - replaced in Phase 3
+├── web/fieldops-next/        # Next.js dashboard + citizen portal (replaced the legacy Vite app)
 ├── mobile/fieldops_mobile/   # Flutter app (field staff) - moves to the API in Phase 3
 ├── database/                 # Local DB init scripts; exported DDL + ER diagram (Phase 5)
 ├── openapi/                  # OpenAPI contract exported from the backend

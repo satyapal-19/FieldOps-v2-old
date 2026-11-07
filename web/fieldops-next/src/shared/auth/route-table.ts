@@ -22,9 +22,33 @@ export const STAFF_ROUTES: readonly StaffRoute[] = [
     menu: true,
   },
   {
+    path: '/live',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Live map', mr: 'थेट नकाशा' },
+    menu: true,
+  },
+  {
+    path: '/planning',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Planning', mr: 'नियोजन' },
+    menu: true,
+  },
+  {
+    path: '/spot-checks',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Spot checks', mr: 'अचानक तपासण्या' },
+    menu: true,
+  },
+  {
     path: '/attendance',
     roles: ['ADMIN', 'WARD_INSPECTOR'],
     label: { en: 'Attendance', mr: 'हजेरी' },
+    menu: true,
+  },
+  {
+    path: '/reports',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Reports', mr: 'अहवाल' },
     menu: true,
   },
   {
@@ -40,9 +64,33 @@ export const STAFF_ROUTES: readonly StaffRoute[] = [
     menu: true,
   },
   {
+    path: '/complaints',
+    roles: ['ADMIN', 'WARD_INSPECTOR', 'OFFICE_STAFF'],
+    label: { en: 'Complaints', mr: 'तक्रारी' },
+    menu: true,
+  },
+  {
     path: '/tasks',
     roles: ['ADMIN', 'WARD_INSPECTOR'],
     label: { en: 'Tasks', mr: 'कामे' },
+    menu: true,
+  },
+  {
+    path: '/chat',
+    roles: ['ADMIN', 'WARD_INSPECTOR', 'OFFICE_STAFF'],
+    label: { en: 'Chat', mr: 'संवाद' },
+    menu: true,
+  },
+  {
+    path: '/hierarchy',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Hierarchy', mr: 'पदक्रम' },
+    menu: true,
+  },
+  {
+    path: '/calendar',
+    roles: ['ADMIN', 'WARD_INSPECTOR'],
+    label: { en: 'Calendar', mr: 'दिनदर्शिका' },
     menu: true,
   },
   {

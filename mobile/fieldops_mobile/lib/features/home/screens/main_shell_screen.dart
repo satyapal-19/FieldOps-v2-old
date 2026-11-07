@@ -6,7 +6,6 @@ import '../../../core/theme/app_theme.dart';
 import '../../home/screens/home_screen.dart';
 import '../../map/screens/beat_map_screen.dart';
 import '../../tasks/screens/task_list_screen.dart';
-import '../../chat/screens/chat_list_screen.dart';
 import '../../more/screens/more_screen.dart';
 
 class MainShellScreen extends StatelessWidget {
@@ -16,7 +15,6 @@ class MainShellScreen extends StatelessWidget {
     const HomeScreen(),
     const BeatMapScreen(),
     const TaskListScreen(),
-    const ChatListScreen(),
     const MoreScreen(),
   ];
 
@@ -55,11 +53,6 @@ class MainShellScreen extends StatelessWidget {
               icon: const Icon(Icons.task_outlined),
               selectedIcon: const Icon(Icons.task, color: AppColors.primary),
               label: 'nav_tasks'.tr,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.chat_bubble_outline),
-              selectedIcon: const Icon(Icons.chat_bubble, color: AppColors.primary),
-              label: 'nav_messages'.tr,
             ),
             NavigationDestination(
               icon: const Icon(Icons.more_horiz),

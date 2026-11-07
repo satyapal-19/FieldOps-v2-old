@@ -13,6 +13,7 @@ Method | HTTP request | Description
 [**attendanceControllerGet**](AttendanceApi.md#attendancecontrollerget) | **GET** /api/v1/attendance/{id} | One attendance record
 [**attendanceControllerList**](AttendanceApi.md#attendancecontrollerlist) | **GET** /api/v1/attendance | Attendance in your scope (self, team, ward, or all)
 [**attendanceControllerPings**](AttendanceApi.md#attendancecontrollerpings) | **POST** /api/v1/attendance/pings | Your location breadcrumbs (live or from the offline buffer), up to 200 per call
+[**attendanceControllerPresenceKey**](AttendanceApi.md#attendancecontrollerpresencekey) | **GET** /api/v1/attendance/presence-key | My key for the rolling co-presence code (TOTP) my phone shows when I am marked by proxy
 [**attendanceControllerPunch**](AttendanceApi.md#attendancecontrollerpunch) | **POST** /api/v1/attendance/punches | Check in or out (self or proxy): server time, geofence, hierarchy and face checks
 [**attendanceControllerTamper**](AttendanceApi.md#attendancecontrollertamper) | **POST** /api/v1/attendance/tamper-events | Tamper signals from your phone watchdog (GPS off, mock location, ...)
 [**routeControllerRoute**](AttendanceApi.md#routecontrollerroute) | **GET** /api/v1/staff/{id}/route | A person&#39;s route on an IST date: points, distance, gaps and tamper events
@@ -190,6 +191,43 @@ Name | Type | Description  | Notes
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **attendanceControllerPresenceKey**
+> PresenceKeyDto attendanceControllerPresenceKey()
+
+My key for the rolling co-presence code (TOTP) my phone shows when I am marked by proxy
+
+### Example
+```dart
+import 'package:fieldops_api/api.dart';
+
+final api = FieldopsApi().getAttendanceApi();
+
+try {
+    final response = api.attendanceControllerPresenceKey();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling AttendanceApi->attendanceControllerPresenceKey: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**PresenceKeyDto**](PresenceKeyDto.md)
+
+### Authorization
+
+[bearer](../README.md#bearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

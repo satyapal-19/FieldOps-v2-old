@@ -26,6 +26,7 @@ import {
   CreateChallengeDto,
   CreatePunchDto,
   ListAttendanceQueryDto,
+  PresenceKeyDto,
   PunchResultDto,
 } from './dto/attendance.dto';
 import {
@@ -58,6 +59,17 @@ export class AttendanceController {
     private readonly attendance: AttendanceService,
     private readonly tracking: TrackingService,
   ) {}
+
+  @Get('presence-key')
+  @Roles(Role.INSPECTOR, Role.WORKER, Role.OFFICE_STAFF)
+  @ApiOperation({
+    summary:
+      'My key for the rolling co-presence code (TOTP) my phone shows when I am marked by proxy',
+  })
+  @ApiOkResponse({ type: PresenceKeyDto })
+  presenceKey(@CurrentUser() user: AuthUser): PresenceKeyDto {
+    return this.attendance.presenceKeyFor(user);
+  }
 
   @Post('challenges')
   @Roles(...STAFF)

@@ -1,6 +1,6 @@
 import { ExecutionContext, Injectable, SetMetadata } from '@nestjs/common';
 import { ThrottlerGuard, ThrottlerModuleOptions } from '@nestjs/throttler';
-import type { AuthUser } from '../../shared/auth/auth-user';
+import type { AccessTokenClaims } from '../../shared/auth/auth-user';
 import type { AppConfig } from '../../shared/config/app-config';
 
 const SIGN_IN_KEY = 'fieldops:signInEndpoint';
@@ -29,8 +29,9 @@ export function rateLimitOptions(config: AppConfig): ThrottlerModuleOptions {
 
 @Injectable()
 export class UserThrottlerGuard extends ThrottlerGuard {
+  /** Runs between AuthGuard (signature checked) and SessionGuard (database), so it uses the claims. */
   protected override async getTracker(req: Record<string, unknown>): Promise<string> {
-    const user = req.user as AuthUser | undefined;
-    return user ? `staff:${user.staffId}` : `ip:${String(req.ip ?? 'unknown')}`;
+    const claims = req.tokenClaims as AccessTokenClaims | undefined;
+    return claims ? `staff:${claims.sub}` : `ip:${String(req.ip ?? 'unknown')}`;
   }
 }

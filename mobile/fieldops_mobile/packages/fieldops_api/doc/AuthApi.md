@@ -61,7 +61,7 @@ void (empty response body)
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerLogin**
-> SessionTokensDto authControllerLogin(userAgent, passwordLoginDto)
+> SessionTokensDto authControllerLogin(passwordLoginDto)
 
 Web dashboard sign-in (ADMIN, WARD_INSPECTOR, OFFICE_STAFF)
 
@@ -70,11 +70,10 @@ Web dashboard sign-in (ADMIN, WARD_INSPECTOR, OFFICE_STAFF)
 import 'package:fieldops_api/api.dart';
 
 final api = FieldopsApi().getAuthApi();
-final String userAgent = userAgent_example; // String | 
 final PasswordLoginDto passwordLoginDto = ; // PasswordLoginDto | 
 
 try {
-    final response = api.authControllerLogin(userAgent, passwordLoginDto);
+    final response = api.authControllerLogin(passwordLoginDto);
     print(response);
 } catch on DioException (e) {
     print('Exception when calling AuthApi->authControllerLogin: $e\n');
@@ -85,7 +84,6 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **userAgent** | **String**|  | 
  **passwordLoginDto** | [**PasswordLoginDto**](PasswordLoginDto.md)|  | 
 
 ### Return type
@@ -304,7 +302,7 @@ Name | Type | Description  | Notes
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerTestLogin**
-> SessionTokensDto authControllerTestLogin(userAgent, testLoginDto)
+> SessionTokensDto authControllerTestLogin(testLoginDto)
 
 Development / test only: sign in without OTP. 404 in production.
 
@@ -313,11 +311,10 @@ Development / test only: sign in without OTP. 404 in production.
 import 'package:fieldops_api/api.dart';
 
 final api = FieldopsApi().getAuthApi();
-final String userAgent = userAgent_example; // String | 
 final TestLoginDto testLoginDto = ; // TestLoginDto | 
 
 try {
-    final response = api.authControllerTestLogin(userAgent, testLoginDto);
+    final response = api.authControllerTestLogin(testLoginDto);
     print(response);
 } catch on DioException (e) {
     print('Exception when calling AuthApi->authControllerTestLogin: $e\n');
@@ -328,7 +325,6 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **userAgent** | **String**|  | 
  **testLoginDto** | [**TestLoginDto**](TestLoginDto.md)|  | 
 
 ### Return type
@@ -347,7 +343,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerVerifyOtp**
-> SessionTokensDto authControllerVerifyOtp(userAgent, otpVerifyDto)
+> SessionTokensDto authControllerVerifyOtp(otpVerifyDto)
 
 Exchange the SMS code for tokens
 
@@ -356,11 +352,10 @@ Exchange the SMS code for tokens
 import 'package:fieldops_api/api.dart';
 
 final api = FieldopsApi().getAuthApi();
-final String userAgent = userAgent_example; // String | 
 final OtpVerifyDto otpVerifyDto = ; // OtpVerifyDto | 
 
 try {
-    final response = api.authControllerVerifyOtp(userAgent, otpVerifyDto);
+    final response = api.authControllerVerifyOtp(otpVerifyDto);
     print(response);
 } catch on DioException (e) {
     print('Exception when calling AuthApi->authControllerVerifyOtp: $e\n');
@@ -371,7 +366,6 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **userAgent** | **String**|  | 
  **otpVerifyDto** | [**OtpVerifyDto**](OtpVerifyDto.md)|  | 
 
 ### Return type

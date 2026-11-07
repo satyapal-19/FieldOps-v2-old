@@ -19,6 +19,7 @@ part 'create_punch_dto.g.dart';
 /// * [latitude] 
 /// * [longitude] 
 /// * [accuracyM] - GPS accuracy in metres (field ≤ 25, office ≤ 100)
+/// * [presenceCode] - Proxy punch: the worker's rolling code scanned from their phone (co-presence)
 /// * [isMocked] - The phone reported a mock location (recorded, flagged)
 /// * [faceImageBase64] - Local face provider: base64 JPEG face crop (≤ 96000 chars); never stored
 /// * [aadhaarPidXml] - Aadhaar face provider: PidData XML from FaceRD
@@ -50,6 +51,10 @@ abstract class CreatePunchDto implements Built<CreatePunchDto, CreatePunchDtoBui
   /// GPS accuracy in metres (field ≤ 25, office ≤ 100)
   @BuiltValueField(wireName: r'accuracyM')
   num get accuracyM;
+
+  /// Proxy punch: the worker's rolling code scanned from their phone (co-presence)
+  @BuiltValueField(wireName: r'presenceCode')
+  String? get presenceCode;
 
   /// The phone reported a mock location (recorded, flagged)
   @BuiltValueField(wireName: r'isMocked')
@@ -127,6 +132,13 @@ class _$CreatePunchDtoSerializer implements PrimitiveSerializer<CreatePunchDto> 
       object.accuracyM,
       specifiedType: const FullType(num),
     );
+    if (object.presenceCode != null) {
+      yield r'presenceCode';
+      yield serializers.serialize(
+        object.presenceCode,
+        specifiedType: const FullType(String),
+      );
+    }
     if (object.isMocked != null) {
       yield r'isMocked';
       yield serializers.serialize(
@@ -226,6 +238,13 @@ class _$CreatePunchDtoSerializer implements PrimitiveSerializer<CreatePunchDto> 
             specifiedType: const FullType(num),
           ) as num;
           result.accuracyM = valueDes;
+          break;
+        case r'presenceCode':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.presenceCode = valueDes;
           break;
         case r'isMocked':
           final valueDes = serializers.deserialize(

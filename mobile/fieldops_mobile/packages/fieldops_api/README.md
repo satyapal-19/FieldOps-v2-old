@@ -72,6 +72,7 @@ Class | Method | HTTP request | Description
 [*AttendanceApi*](doc/AttendanceApi.md) | [**attendanceControllerGet**](doc/AttendanceApi.md#attendancecontrollerget) | **GET** /api/v1/attendance/{id} | One attendance record
 [*AttendanceApi*](doc/AttendanceApi.md) | [**attendanceControllerList**](doc/AttendanceApi.md#attendancecontrollerlist) | **GET** /api/v1/attendance | Attendance in your scope (self, team, ward, or all)
 [*AttendanceApi*](doc/AttendanceApi.md) | [**attendanceControllerPings**](doc/AttendanceApi.md#attendancecontrollerpings) | **POST** /api/v1/attendance/pings | Your location breadcrumbs (live or from the offline buffer), up to 200 per call
+[*AttendanceApi*](doc/AttendanceApi.md) | [**attendanceControllerPresenceKey**](doc/AttendanceApi.md#attendancecontrollerpresencekey) | **GET** /api/v1/attendance/presence-key | My key for the rolling co-presence code (TOTP) my phone shows when I am marked by proxy
 [*AttendanceApi*](doc/AttendanceApi.md) | [**attendanceControllerPunch**](doc/AttendanceApi.md#attendancecontrollerpunch) | **POST** /api/v1/attendance/punches | Check in or out (self or proxy): server time, geofence, hierarchy and face checks
 [*AttendanceApi*](doc/AttendanceApi.md) | [**attendanceControllerTamper**](doc/AttendanceApi.md#attendancecontrollertamper) | **POST** /api/v1/attendance/tamper-events | Tamper signals from your phone watchdog (GPS off, mock location, ...)
 [*AttendanceApi*](doc/AttendanceApi.md) | [**routeControllerRoute**](doc/AttendanceApi.md#routecontrollerroute) | **GET** /api/v1/staff/{id}/route | A person&#39;s route on an IST date: points, distance, gaps and tamper events
@@ -84,6 +85,12 @@ Class | Method | HTTP request | Description
 [*AuthApi*](doc/AuthApi.md) | [**authControllerRevokeSessions**](doc/AuthApi.md#authcontrollerrevokesessions) | **POST** /api/v1/auth/staff/{staffId}/revoke-sessions | Sign a staff member out of every device (ADMIN)
 [*AuthApi*](doc/AuthApi.md) | [**authControllerTestLogin**](doc/AuthApi.md#authcontrollertestlogin) | **POST** /api/v1/auth/test-login | Development / test only: sign in without OTP. 404 in production.
 [*AuthApi*](doc/AuthApi.md) | [**authControllerVerifyOtp**](doc/AuthApi.md#authcontrollerverifyotp) | **POST** /api/v1/auth/otp/verify | Exchange the SMS code for tokens
+[*ChatApi*](doc/ChatApi.md) | [**chatControllerDirect**](doc/ChatApi.md#chatcontrollerdirect) | **POST** /api/v1/chat/direct | Open (or reuse) a direct conversation along the hierarchy
+[*ChatApi*](doc/ChatApi.md) | [**chatControllerList**](doc/ChatApi.md#chatcontrollerlist) | **GET** /api/v1/chat/conversations | My conversations (joins today&#39;s squad / ward channels), newest first
+[*ChatApi*](doc/ChatApi.md) | [**chatControllerMedia**](doc/ChatApi.md#chatcontrollermedia) | **GET** /api/v1/chat/messages/{id}/media | A message&#39;s voice note or photo, for the conversation&#39;s members
+[*ChatApi*](doc/ChatApi.md) | [**chatControllerMessages**](doc/ChatApi.md#chatcontrollermessages) | **GET** /api/v1/chat/conversations/{id}/messages | Messages, newest first (page back with before)
+[*ChatApi*](doc/ChatApi.md) | [**chatControllerRead**](doc/ChatApi.md#chatcontrollerread) | **POST** /api/v1/chat/conversations/{id}/read | Mark the conversation read up to now
+[*ChatApi*](doc/ChatApi.md) | [**chatControllerSend**](doc/ChatApi.md#chatcontrollersend) | **POST** /api/v1/chat/conversations/{id}/messages | Send a text, voice note, photo or location (retry-safe with clientUuid)
 [*ComplaintsApi*](doc/ComplaintsApi.md) | [**complaintsControllerAssign**](doc/ComplaintsApi.md#complaintscontrollerassign) | **POST** /api/v1/complaints/{id}/assign | Route a complaint by raising a task (admin; ward inspector of its ward)
 [*ComplaintsApi*](doc/ComplaintsApi.md) | [**complaintsControllerChangeStatus**](doc/ComplaintsApi.md#complaintscontrollerchangestatus) | **POST** /api/v1/complaints/{id}/status | RESOLVE (after an approved task), REJECT (from RECEIVED) or CLOSE a complaint
 [*ComplaintsApi*](doc/ComplaintsApi.md) | [**complaintsControllerGet**](doc/ComplaintsApi.md#complaintscontrollerget) | **GET** /api/v1/complaints/{id} | One complaint with its linked tasks
@@ -105,13 +112,24 @@ Class | Method | HTTP request | Description
 [*LeaveApi*](doc/LeaveApi.md) | [**leaveControllerRequestRegularization**](doc/LeaveApi.md#leavecontrollerrequestregularization) | **POST** /api/v1/regularizations | Ask to correct one of the last 7 days (for yourself; retry-safe with clientUuid)
 [*LeaveApi*](doc/LeaveApi.md) | [**leaveControllerReviewLeave**](doc/LeaveApi.md#leavecontrollerreviewleave) | **POST** /api/v1/leave/{id}/review | Approve or reject a pending leave request (line manager; never your own)
 [*LeaveApi*](doc/LeaveApi.md) | [**leaveControllerReviewRegularization**](doc/LeaveApi.md#leavecontrollerreviewregularization) | **POST** /api/v1/regularizations/{id}/review | Approve or reject a pending regularization (line manager; never your own)
+[*NotificationsApi*](doc/NotificationsApi.md) | [**notificationsControllerInbox**](doc/NotificationsApi.md#notificationscontrollerinbox) | **GET** /api/v1/notifications | My inbox, newest first, with the unread count (the app polls this)
+[*NotificationsApi*](doc/NotificationsApi.md) | [**notificationsControllerMarkRead**](doc/NotificationsApi.md#notificationscontrollermarkread) | **POST** /api/v1/notifications/read | Mark some or all of my messages read
+[*NotificationsApi*](doc/NotificationsApi.md) | [**notificationsControllerRegister**](doc/NotificationsApi.md#notificationscontrollerregister) | **PUT** /api/v1/devices/push-token | Register this phone&#39;s FCM token for my pushes (after sign-in)
+[*NotificationsApi*](doc/NotificationsApi.md) | [**notificationsControllerRemove**](doc/NotificationsApi.md#notificationscontrollerremove) | **DELETE** /api/v1/devices/push-token | Stop pushes to this phone (before sign-out)
 [*OfficesApi*](doc/OfficesApi.md) | [**officesControllerCheckLocation**](doc/OfficesApi.md#officescontrollerchecklocation) | **POST** /api/v1/offices/{id}/location-check | Is a point inside the office premises or its buffer?
 [*OfficesApi*](doc/OfficesApi.md) | [**officesControllerCreate**](doc/OfficesApi.md#officescontrollercreate) | **POST** /api/v1/offices | Create an office (ADMIN)
 [*OfficesApi*](doc/OfficesApi.md) | [**officesControllerGet**](doc/OfficesApi.md#officescontrollerget) | **GET** /api/v1/offices/{id} | Get one office with its premises
 [*OfficesApi*](doc/OfficesApi.md) | [**officesControllerList**](doc/OfficesApi.md#officescontrollerlist) | **GET** /api/v1/offices | List corporation offices
 [*OfficesApi*](doc/OfficesApi.md) | [**officesControllerUpdate**](doc/OfficesApi.md#officescontrollerupdate) | **PATCH** /api/v1/offices/{id} | Update an office (ADMIN, optimistic locking)
+[*PublicApi*](doc/PublicApi.md) | [**appInfoControllerGet**](doc/PublicApi.md#appinfocontrollerget) | **GET** /api/v1/public/app-config | Mobile start-up settings: minimum version, face flow, ping cadence, server time
 [*PublicApi*](doc/PublicApi.md) | [**publicComplaintsControllerSubmit**](doc/PublicApi.md#publiccomplaintscontrollersubmit) | **POST** /api/v1/public/complaints | File a civic complaint (no sign-in); returns the tracking ID
 [*PublicApi*](doc/PublicApi.md) | [**publicComplaintsControllerTrack**](doc/PublicApi.md#publiccomplaintscontrollertrack) | **GET** /api/v1/public/complaints/{trackingId} | Track a complaint by its tracking ID (no sign-in)
+[*PublicApi*](doc/PublicApi.md) | [**publicWardsControllerList**](doc/PublicApi.md#publicwardscontrollerlist) | **GET** /api/v1/public/wards | Active wards with their boundaries (no sign-in)
+[*ReportsApi*](doc/ReportsApi.md) | [**reportsControllerLive**](doc/ReportsApi.md#reportscontrollerlive) | **GET** /api/v1/live/positions | Who is checked in on a field shift right now, with their latest position
+[*ReportsApi*](doc/ReportsApi.md) | [**reportsControllerMusterRoll**](doc/ReportsApi.md#reportscontrollermusterroll) | **GET** /api/v1/reports/muster-roll | A ward&#39;s monthly muster roll: CSV (Marathi names) or printable PDF
+[*ReportsApi*](doc/ReportsApi.md) | [**reportsControllerPublicWard**](doc/ReportsApi.md#reportscontrollerpublicward) | **GET** /api/v1/public/wards/{id}/attendance | Citizens: staff placed and present in a ward over the last week (counts only)
+[*ReportsApi*](doc/ReportsApi.md) | [**reportsControllerStaffDays**](doc/ReportsApi.md#reportscontrollerstaffdays) | **GET** /api/v1/reports/staff-days | Per-person late marks, absences, leave and corrections over a range
+[*ReportsApi*](doc/ReportsApi.md) | [**reportsControllerWardDays**](doc/ReportsApi.md#reportscontrollerwarddays) | **GET** /api/v1/reports/ward-days | Daily attendance per ward from the nightly summaries (up to 92 days)
 [*RostersApi*](doc/RostersApi.md) | [**rostersControllerApprove**](doc/RostersApi.md#rosterscontrollerapprove) | **POST** /api/v1/assignments/{id}/approve | Approve a self-service assignment (never your own)
 [*RostersApi*](doc/RostersApi.md) | [**rostersControllerAssign**](doc/RostersApi.md#rosterscontrollerassign) | **POST** /api/v1/assignments | Place an inspector in a ward or a worker in a team for a day (approved at once)
 [*RostersApi*](doc/RostersApi.md) | [**rostersControllerCreateRoster**](doc/RostersApi.md#rosterscontrollercreateroster) | **POST** /api/v1/rosters/standing | Put a worker in an inspector&#39;s standing squad (ward from the inspector)
@@ -124,6 +142,11 @@ Class | Method | HTTP request | Description
 [*ShiftsApi*](doc/ShiftsApi.md) | [**shiftsControllerList**](doc/ShiftsApi.md#shiftscontrollerlist) | **GET** /api/v1/shifts | A person&#39;s shift overrides in a date range (yourself, or staff in your scope)
 [*ShiftsApi*](doc/ShiftsApi.md) | [**shiftsControllerPut**](doc/ShiftsApi.md#shiftscontrollerput) | **PUT** /api/v1/shifts | Set a person&#39;s shift for a day (ADMIN; ward inspector for their ward&#39;s staff)
 [*ShiftsApi*](doc/ShiftsApi.md) | [**shiftsControllerRemove**](doc/ShiftsApi.md#shiftscontrollerremove) | **DELETE** /api/v1/shifts/{id} | Remove an override for today or a coming day (defaults apply again)
+[*SpotChecksApi*](doc/SpotChecksApi.md) | [**spotChecksControllerList**](doc/SpotChecksApi.md#spotcheckscontrollerlist) | **GET** /api/v1/spot-checks | Spot checks in your scope (admin all, ward inspector ward, inspector team)
+[*SpotChecksApi*](doc/SpotChecksApi.md) | [**spotChecksControllerMine**](doc/SpotChecksApi.md#spotcheckscontrollermine) | **GET** /api/v1/spot-checks/mine | My spot checks waiting for an answer (poll while on duty)
+[*SpotChecksApi*](doc/SpotChecksApi.md) | [**spotChecksControllerOrder**](doc/SpotChecksApi.md#spotcheckscontrollerorder) | **POST** /api/v1/spot-checks | Order a spot check now for someone on duty in your scope
+[*SpotChecksApi*](doc/SpotChecksApi.md) | [**spotChecksControllerRespond**](doc/SpotChecksApi.md#spotcheckscontrollerrespond) | **POST** /api/v1/spot-checks/{id}/respond | Answer: a fresh challenge, the face and where you are (same proof as a punch)
+[*SpotChecksApi*](doc/SpotChecksApi.md) | [**spotChecksControllerSnooze**](doc/SpotChecksApi.md#spotcheckscontrollersnooze) | **POST** /api/v1/spot-checks/{id}/snooze | Ask for 10 more minutes, once
 [*StaffApi*](doc/StaffApi.md) | [**staffAdminControllerCreate**](doc/StaffApi.md#staffadmincontrollercreate) | **POST** /api/v1/staff | Create a staff member (ADMIN)
 [*StaffApi*](doc/StaffApi.md) | [**staffAdminControllerGet**](doc/StaffApi.md#staffadmincontrollerget) | **GET** /api/v1/staff/{id} | Get one staff member (yourself, or someone in your scope)
 [*StaffApi*](doc/StaffApi.md) | [**staffAdminControllerList**](doc/StaffApi.md#staffadmincontrollerlist) | **GET** /api/v1/staff | List staff in your scope (paged, by employee code)
@@ -135,6 +158,10 @@ Class | Method | HTTP request | Description
 [*TasksApi*](doc/TasksApi.md) | [**tasksControllerList**](doc/TasksApi.md#taskscontrollerlist) | **GET** /api/v1/tasks | Tasks in your scope (assigned to you, your team, your ward, or all)
 [*TasksApi*](doc/TasksApi.md) | [**tasksControllerReassign**](doc/TasksApi.md#taskscontrollerreassign) | **POST** /api/v1/tasks/{id}/reassign | Give an unfinished task to someone else; it restarts as OPEN
 [*TasksApi*](doc/TasksApi.md) | [**tasksControllerSupervise**](doc/TasksApi.md#taskscontrollersupervise) | **POST** /api/v1/tasks/{id}/review | APPROVE, REJECT (with reason), ESCALATE or CLOSE a task you supervise
+[*TilesApi*](doc/TilesApi.md) | [**tilesControllerManifest**](doc/TilesApi.md#tilescontrollermanifest) | **GET** /api/v1/tiles/manifest | Whether an offline tile pack is installed, and its zooms and bounds
+[*TilesApi*](doc/TilesApi.md) | [**tilesControllerTile**](doc/TilesApi.md#tilescontrollertile) | **GET** /api/v1/tiles/{z}/{x}/{y}.png | One map tile from the offline pack (404 when not in the pack)
+[*UploadsApi*](doc/UploadsApi.md) | [**uploadsControllerGet**](doc/UploadsApi.md#uploadscontrollerget) | **GET** /api/v1/uploads/{id} | A photo, for its uploader and the people who review their work
+[*UploadsApi*](doc/UploadsApi.md) | [**uploadsControllerUpload**](doc/UploadsApi.md#uploadscontrollerupload) | **POST** /api/v1/uploads | Upload a photo (task evidence); returns the key to send as photoKey
 [*WardsApi*](doc/WardsApi.md) | [**wardsControllerCheckLocation**](doc/WardsApi.md#wardscontrollerchecklocation) | **POST** /api/v1/wards/{id}/location-check | Is a point inside the ward or within the 25 m edge allowance?
 [*WardsApi*](doc/WardsApi.md) | [**wardsControllerCreate**](doc/WardsApi.md#wardscontrollercreate) | **POST** /api/v1/wards | Create a ward (ADMIN)
 [*WardsApi*](doc/WardsApi.md) | [**wardsControllerGet**](doc/WardsApi.md#wardscontrollerget) | **GET** /api/v1/wards/{id} | Get one ward with its boundary
@@ -146,6 +173,7 @@ Class | Method | HTTP request | Description
 
  - [AlertDto](doc/AlertDto.md)
  - [AlertPageDto](doc/AlertPageDto.md)
+ - [AppInfoDto](doc/AppInfoDto.md)
  - [ApproveAssignmentDto](doc/ApproveAssignmentDto.md)
  - [AssignComplaintDto](doc/AssignComplaintDto.md)
  - [AssigneeUpdateDto](doc/AssigneeUpdateDto.md)
@@ -159,6 +187,7 @@ Class | Method | HTTP request | Description
  - [ComplaintDto](doc/ComplaintDto.md)
  - [ComplaintPageDto](doc/ComplaintPageDto.md)
  - [ComplaintStatusDto](doc/ComplaintStatusDto.md)
+ - [ConversationDto](doc/ConversationDto.md)
  - [CreateAssignmentDto](doc/CreateAssignmentDto.md)
  - [CreateChallengeDto](doc/CreateChallengeDto.md)
  - [CreateHolidayDto](doc/CreateHolidayDto.md)
@@ -170,6 +199,7 @@ Class | Method | HTTP request | Description
  - [CreateStandingRosterDto](doc/CreateStandingRosterDto.md)
  - [CreateTaskDto](doc/CreateTaskDto.md)
  - [CreateWardDto](doc/CreateWardDto.md)
+ - [DirectDto](doc/DirectDto.md)
  - [EffectiveShiftDto](doc/EffectiveShiftDto.md)
  - [ErrorCode](doc/ErrorCode.md)
  - [FaceCaptureOptionsDto](doc/FaceCaptureOptionsDto.md)
@@ -177,13 +207,21 @@ Class | Method | HTTP request | Description
  - [GenerateAssignmentsResultDto](doc/GenerateAssignmentsResultDto.md)
  - [HealthDto](doc/HealthDto.md)
  - [HolidayDto](doc/HolidayDto.md)
+ - [InboxDto](doc/InboxDto.md)
  - [LeavePageDto](doc/LeavePageDto.md)
  - [LeaveRequestDto](doc/LeaveRequestDto.md)
+ - [LiveDto](doc/LiveDto.md)
+ - [LivePositionDto](doc/LivePositionDto.md)
  - [LocationCheckDto](doc/LocationCheckDto.md)
  - [LocationCheckResultDto](doc/LocationCheckResultDto.md)
  - [LogoutDto](doc/LogoutDto.md)
+ - [MarkReadDto](doc/MarkReadDto.md)
+ - [MarkedDto](doc/MarkedDto.md)
+ - [MessageDto](doc/MessageDto.md)
+ - [NotificationDto](doc/NotificationDto.md)
  - [OfficeDto](doc/OfficeDto.md)
  - [OfficeLocationCheckResultDto](doc/OfficeLocationCheckResultDto.md)
+ - [OrderSpotCheckDto](doc/OrderSpotCheckDto.md)
  - [OtpRequestDto](doc/OtpRequestDto.md)
  - [OtpRequestedDto](doc/OtpRequestedDto.md)
  - [OtpVerifyDto](doc/OtpVerifyDto.md)
@@ -191,10 +229,15 @@ Class | Method | HTTP request | Description
  - [PingBatchDto](doc/PingBatchDto.md)
  - [PingBatchResultDto](doc/PingBatchResultDto.md)
  - [PingDto](doc/PingDto.md)
+ - [PresenceKeyDto](doc/PresenceKeyDto.md)
  - [ProblemDetailsDto](doc/ProblemDetailsDto.md)
  - [PublicComplaintDto](doc/PublicComplaintDto.md)
+ - [PublicWardAttendanceDto](doc/PublicWardAttendanceDto.md)
+ - [PublicWardDayDto](doc/PublicWardDayDto.md)
+ - [PublicWardDto](doc/PublicWardDto.md)
  - [PunchDetailsDto](doc/PunchDetailsDto.md)
  - [PunchResultDto](doc/PunchResultDto.md)
+ - [PushTokenDto](doc/PushTokenDto.md)
  - [PutShiftDto](doc/PutShiftDto.md)
  - [ReadyDto](doc/ReadyDto.md)
  - [ReassignTaskDto](doc/ReassignTaskDto.md)
@@ -202,7 +245,9 @@ Class | Method | HTTP request | Description
  - [RegularizationPageDto](doc/RegularizationPageDto.md)
  - [RegularizationRequestDto](doc/RegularizationRequestDto.md)
  - [RejectedItemDto](doc/RejectedItemDto.md)
+ - [RemovePushTokenDto](doc/RemovePushTokenDto.md)
  - [ResolveAlertDto](doc/ResolveAlertDto.md)
+ - [RespondSpotCheckDto](doc/RespondSpotCheckDto.md)
  - [ReviewRequestDto](doc/ReviewRequestDto.md)
  - [RevokedCountDto](doc/RevokedCountDto.md)
  - [RouteDto](doc/RouteDto.md)
@@ -211,10 +256,15 @@ Class | Method | HTTP request | Description
  - [RouteSummaryDto](doc/RouteSummaryDto.md)
  - [RouteTamperEventDto](doc/RouteTamperEventDto.md)
  - [SelfAssignmentDto](doc/SelfAssignmentDto.md)
+ - [SendMessageDto](doc/SendMessageDto.md)
  - [SessionTokensDto](doc/SessionTokensDto.md)
  - [ShiftDto](doc/ShiftDto.md)
+ - [SpotCheckDto](doc/SpotCheckDto.md)
+ - [SpotCheckPageDto](doc/SpotCheckPageDto.md)
  - [StaffPageDto](doc/StaffPageDto.md)
  - [StaffProfileDto](doc/StaffProfileDto.md)
+ - [StaffReportDto](doc/StaffReportDto.md)
+ - [StaffReportRowDto](doc/StaffReportRowDto.md)
  - [StandingRosterDto](doc/StandingRosterDto.md)
  - [StandingRosterPageDto](doc/StandingRosterPageDto.md)
  - [SubmitComplaintDto](doc/SubmitComplaintDto.md)
@@ -226,11 +276,15 @@ Class | Method | HTTP request | Description
  - [TaskPageDto](doc/TaskPageDto.md)
  - [TaskUpdateDto](doc/TaskUpdateDto.md)
  - [TestLoginDto](doc/TestLoginDto.md)
+ - [TileManifestDto](doc/TileManifestDto.md)
  - [UpdateHolidayDto](doc/UpdateHolidayDto.md)
  - [UpdateOfficeDto](doc/UpdateOfficeDto.md)
  - [UpdateStaffDto](doc/UpdateStaffDto.md)
  - [UpdateStandingRosterDto](doc/UpdateStandingRosterDto.md)
  - [UpdateWardDto](doc/UpdateWardDto.md)
+ - [UploadDto](doc/UploadDto.md)
+ - [WardDayReportDto](doc/WardDayReportDto.md)
+ - [WardDaysDto](doc/WardDaysDto.md)
  - [WardDto](doc/WardDto.md)
  - [WardPageDto](doc/WardPageDto.md)
 

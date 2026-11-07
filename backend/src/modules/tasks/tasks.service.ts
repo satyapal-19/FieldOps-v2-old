@@ -33,6 +33,7 @@ import {
   TaskRuleError,
   taskScope,
 } from './tasks.policy';
+import { UploadsService } from '../uploads/uploads.service';
 import { TaskChanges, TaskFilter, TasksRepository } from './tasks.repository';
 
 const iso = (d: Date | null | undefined) => (d ? d.toISOString() : null);
@@ -121,6 +122,7 @@ export class TasksService {
   constructor(
     private readonly repo: TasksRepository,
     private readonly staff: StaffService,
+    private readonly uploads: UploadsService,
     private readonly clock: Clock,
     private readonly ids: IdGenerator,
     private readonly uow: UnitOfWork,
@@ -236,6 +238,8 @@ export class TasksService {
         field: 'note',
       });
     }
+    // A photo must be one this person uploaded (POST /uploads), not someone else's key.
+    if (dto.photoKey) await this.uploads.assertOwnedBy(actor.staffId, dto.photoKey, 'photoKey');
     const now = this.clock.now();
     const changes: TaskChanges = { status: to, updatedAt: now };
     if (dto.action === 'START' && !task.startedAt) changes.startedAt = now;

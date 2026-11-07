@@ -10,8 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Supabase (Backend-as-a-Service)
-  supabase_flutter: ^2.8.4
+  # Generated REST client (openapi/openapi.json → npm run api:clients)
+  fieldops_api:
+    path: packages/fieldops_api
+  built_value: ^8.9.2
+  built_collection: ^5.1.1
 
   # State Management
   get: ^4.6.6
@@ -41,9 +44,6 @@ dependencies:
   # Background Tasks
   workmanager: ^0.10.10
 
-  # QR Scanner
-  mobile_scanner: ^5.2.3
-
   # Networking
   connectivity_plus: ^6.1.1
   dio: ^5.7.0
@@ -59,7 +59,7 @@ dependencies:
 
   # Utils
   uuid: ^4.5.1
-  crypto: ^3.0.5
+  image: '>=4.2.0 <4.9.0'  # 4.11 calls an archive API that archive 4.x lacks
   device_info_plus: ^10.1.2
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.0
@@ -78,4 +78,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/error_messages.json
 

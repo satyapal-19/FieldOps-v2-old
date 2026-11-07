@@ -132,7 +132,17 @@ describe('tasks (e2e)', () => {
         rejectionReason: 'Silt still there',
       });
       await phone('WK1', id, { action: 'START' }).expect(200);
-      await phone('WK1', id, { action: 'SUBMIT', photoKey: 'tasks/2026/11/after.jpg' }).expect(200);
+      // The photo goes up first (POST /uploads); only the uploader's own key is accepted.
+      const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46]);
+      const photo = await http
+        .post('/api/v1/uploads')
+        .set('Authorization', tok.WK1)
+        .field('clientUuid', randomUUID())
+        .field('kind', 'TASK_PHOTO')
+        .attach('file', jpeg, { filename: 'after.jpg', contentType: 'image/jpeg' })
+        .expect(201);
+      await phone('WK1', id, { action: 'SUBMIT', photoKey: randomUUID() }).expect(400);
+      await phone('WK1', id, { action: 'SUBMIT', photoKey: photo.body.id }).expect(200);
     });
 
     it('stale versions are refused; the ward inspector approves and closes', async () => {

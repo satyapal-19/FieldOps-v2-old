@@ -80,6 +80,9 @@ export async function resetDatabase(dataSource: DataSource): Promise<void> {
     'RouteSummary',
     'WardDailySummary',
     'JobLock',
+    'Upload',
+    'Notification',
+    'PushToken',
     'Shift',
     'DailyAssignment',
     'StandingRoster',
@@ -110,10 +113,12 @@ export async function seedStaff(
     officeId?: string | null;
     reportsToId?: string | null;
     password?: string;
+    /** Join date; defaults to the real now (tests with a frozen clock in the past set it). */
+    createdAt?: Date;
   },
 ): Promise<Staff> {
   phoneCounter += 1;
-  const now = new Date();
+  const now = fields.createdAt ?? new Date();
   const staff: Staff = {
     id: randomUUID(),
     employeeCode: fields.employeeCode,

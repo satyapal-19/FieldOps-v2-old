@@ -20,6 +20,8 @@ import { LocationPing } from './entities/location-ping.entity';
 import { RouteSummary } from './entities/route-summary.entity';
 import { TamperEvent } from './entities/tamper-event.entity';
 import { WardDailySummary } from './entities/ward-daily-summary.entity';
+import { ReportsController } from './reports.controller';
+import { ReportsService } from './reports.service';
 import { RouteController } from './route.controller';
 import { RouteService } from './route.service';
 import { SummariesRepository } from './summaries.repository';
@@ -50,7 +52,7 @@ import { TrackingService } from './tracking.service';
     FaceModule,
     AlertsModule,
   ],
-  controllers: [AttendanceController, RouteController],
+  controllers: [AttendanceController, RouteController, ReportsController],
   providers: [
     AttendanceRepository,
     AttendanceService,
@@ -58,6 +60,7 @@ import { TrackingService } from './tracking.service';
     TrackingService,
     SummariesRepository,
     RouteService,
+    ReportsService,
     AttendanceJobsService,
     AttendanceScheduler,
   ],

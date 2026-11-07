@@ -99,6 +99,10 @@ class ErrorCode extends EnumClass {
   static const ErrorCode CHALLENGE_EXPIRED = _$CHALLENGE_EXPIRED;
   @BuiltValueEnumConst(wireName: r'FACE_MISMATCH')
   static const ErrorCode FACE_MISMATCH = _$FACE_MISMATCH;
+  @BuiltValueEnumConst(wireName: r'SPOT_CHECK_CLOSED')
+  static const ErrorCode SPOT_CHECK_CLOSED = _$SPOT_CHECK_CLOSED;
+  @BuiltValueEnumConst(wireName: r'COPRESENCE_FAILED')
+  static const ErrorCode COPRESENCE_FAILED = _$COPRESENCE_FAILED;
   @BuiltValueEnumConst(wireName: r'FACE_PROVIDER_UNAVAILABLE')
   static const ErrorCode FACE_PROVIDER_UNAVAILABLE = _$FACE_PROVIDER_UNAVAILABLE;
   @BuiltValueEnumConst(wireName: r'FACE_NOT_ENROLLED')

@@ -21,6 +21,12 @@ import { RequestContextInterceptor } from './shared/context/request-context';
 import { DatabaseModule } from './shared/database/database.module';
 import { JobsModule } from './shared/jobs/jobs.module';
 import { LoggingModule } from './shared/logging/logging.module';
+import { AppInfoModule } from './modules/app-info/app-info.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { SpotChecksModule } from './modules/spot-checks/spot-checks.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { TilesModule } from './modules/tiles/tiles.module';
 import { SharedModule } from './shared/shared.module';
 
 @Module({
@@ -49,6 +55,12 @@ import { SharedModule } from './shared/shared.module';
     AlertsModule,
     AttendanceModule,
     FaceModule,
+    UploadsModule,
+    NotificationsModule,
+    SpotChecksModule,
+    ChatModule,
+    TilesModule,
+    AppInfoModule,
   ],
   providers: [{ provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor }],
 })

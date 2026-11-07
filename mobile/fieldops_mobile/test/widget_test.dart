@@ -1,24 +1,31 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:dio/dio.dart';
+import 'package:fieldops_mobile/core/api/api_service.dart';
+import 'package:fieldops_mobile/core/api/session_store.dart';
+import 'package:fieldops_mobile/core/outbox/outbox.dart';
+import 'package:fieldops_mobile/core/outbox/outbox_service.dart';
+import 'package:fieldops_mobile/features/auth/screens/otp_login_screen.dart';
 import 'package:fieldops_mobile/main.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'helpers/fake_adapter.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  setUpAll(() async {
+  testWidgets('starts without a session and lands on OTP sign-in', (tester) async {
     SharedPreferences.setMockInitialValues({});
-    await Supabase.initialize(
-      url: 'https://test-project.example.invalid',
-      // ignore: deprecated_member_use
-      anonKey: 'test-anon-key',
-    );
-  });
+    final dio = Dio(BaseOptions(baseUrl: 'http://api.test'))
+      ..httpClientAdapter = FakeAdapter((o) async => (503, {'code': 'SERVICE_UNAVAILABLE'}));
+    Get.put(ApiService(storage: MemoryKeyValue(), baseUrl: 'http://api.test', dioOverride: dio), permanent: true);
+    Get.put(OutboxService(MemoryOutboxStore()), permanent: true);
 
-  testWidgets('FieldOps app smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const FieldOpsApp());
-    expect(find.byType(FieldOpsApp), findsOneWidget);
-    // Allow splash timer to complete
-    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 5));
+    expect(find.byType(OtpLoginScreen), findsOneWidget);
+
+    // Stop the outbox's wake-up timer before the test ends.
+    Get.find<OutboxService>().onClose();
+    Get.reset();
   });
 }

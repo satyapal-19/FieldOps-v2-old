@@ -97,11 +97,6 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
     }
   }
 
-  void _bypassUnlock() {
-    HapticFeedback.selectionClick();
-    Get.offAllNamed(AppRoutes.mainShell);
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -114,12 +109,12 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
             // Observe locale changes reactively
             final _ = _localeController.currentLocale.value;
             final isEn = _localeController.currentLocale.value.languageCode == 'en';
-            final staff = _authController.currentStaff.value;
-            final staffName = isEn
-                ? (staff?['name'] ?? 'Staff Member')
-                : (staff?['name_mr'] ?? staff?['name'] ?? 'कर्मचारी');
-            final staffRole = staff?['designation'] ?? staff?['role'] ?? 'SMKMC Field Staff';
-            final ward = staff?['wards']?['ward_name'] ?? staff?['department'] ?? 'सांगली मिरज कुपवाड मनपा';
+            _authController.profile.value;
+            final staffName = isEn ? _authController.staffName : _authController.staffNameMr;
+            final staffRole = 'role_${_authController.staffRole}'.tr;
+            final ward = _authController.wardName.isNotEmpty
+                ? _authController.wardName
+                : _authController.department;
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -361,56 +356,24 @@ class _BiometricLockScreenState extends State<BiometricLockScreen>
                       ),
                       const SizedBox(height: 10),
 
-                      // Row: Switch Account / OTP Login & Demo Bypass
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => Get.offAllNamed(AppRoutes.otpLogin),
-                              icon: const Icon(Icons.switch_account, size: 16),
-                              label: Text(
-                                'switch_account'.tr,
-                                style: const TextStyle(
-                                  fontFamily: 'NotoSansDevanagari',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size.fromHeight(44),
-                                side: const BorderSide(color: Color(0xFFD1D5DB)),
-                              ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _authController.signOut,
+                          icon: const Icon(Icons.switch_account, size: 16),
+                          label: Text(
+                            'switch_account'.tr,
+                            style: const TextStyle(
+                              fontFamily: 'NotoSansDevanagari',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextButton.icon(
-                              onPressed: _bypassUnlock,
-                              icon: const Icon(Icons.bolt, size: 16, color: Colors.orange),
-                              label: const Text(
-                                'डेमो अनलॉक (Bypass)',
-                                style: TextStyle(
-                                  fontFamily: 'NotoSansDevanagari',
-                                  fontSize: 12,
-                                  color: Colors.orange,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              style: TextButton.styleFrom(
-                                minimumSize: const Size.fromHeight(44),
-                                backgroundColor: Colors.orange.withValues(alpha: 0.08),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  side: BorderSide(color: Colors.orange.withValues(alpha: 0.3)),
-                                ),
-                              ),
-                            ),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(44),
+                            side: const BorderSide(color: Color(0xFFD1D5DB)),
                           ),
-                        ],
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(

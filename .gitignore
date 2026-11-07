@@ -76,3 +76,6 @@ CLAUDE.local.md
 # AI assistant guides stay local, not in the repository
 CLAUDE.md
 **/CLAUDE.md
+
+# Uploaded photos on a dev/test machine (the server keeps them in UPLOAD_DIR)
+backend/storage/

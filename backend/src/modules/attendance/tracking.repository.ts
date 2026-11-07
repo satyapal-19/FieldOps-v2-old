@@ -96,6 +96,24 @@ export class TrackingRepository {
     return last;
   }
 
+  /** Each person's latest ping since `since` (the live map): one row per person who pinged. */
+  async latestPings(staffIds: readonly string[], since: Date): Promise<Map<string, LocationPing>> {
+    const times = await this.lastPingTimes(staffIds, since);
+    const latest = new Map<string, LocationPing>();
+    const ids = [...times.keys()];
+    for (let i = 0; i < ids.length; i += CHUNK) {
+      const chunk = ids.slice(i, i + CHUNK);
+      const rows = await this.pings.find({
+        where: { staffId: In(chunk), recordedAt: In(chunk.map((id) => times.get(id)!)) },
+      });
+      for (const r of rows) {
+        // Two people can ping at the same instant: keep only each person's own latest.
+        if (r.recordedAt.getTime() === times.get(r.staffId)?.getTime()) latest.set(r.staffId, r);
+      }
+    }
+    return latest;
+  }
+
   /** The person's last ping in an inclusive time range (auto-checkout's "last seen"). */
   lastPingBetween(staffId: string, from: Date, to: Date): Promise<LocationPing | null> {
     return this.pings.findOne({

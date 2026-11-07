@@ -75,6 +75,8 @@ class _$CreatePunchDto extends CreatePunchDto {
   @override
   final num accuracyM;
   @override
+  final String? presenceCode;
+  @override
   final bool? isMocked;
   @override
   final String? faceImageBase64;
@@ -94,6 +96,7 @@ class _$CreatePunchDto extends CreatePunchDto {
       required this.latitude,
       required this.longitude,
       required this.accuracyM,
+      this.presenceCode,
       this.isMocked,
       this.faceImageBase64,
       this.aadhaarPidXml,
@@ -117,6 +120,7 @@ class _$CreatePunchDto extends CreatePunchDto {
         latitude == other.latitude &&
         longitude == other.longitude &&
         accuracyM == other.accuracyM &&
+        presenceCode == other.presenceCode &&
         isMocked == other.isMocked &&
         faceImageBase64 == other.faceImageBase64 &&
         aadhaarPidXml == other.aadhaarPidXml &&
@@ -133,6 +137,7 @@ class _$CreatePunchDto extends CreatePunchDto {
     _$hash = $jc(_$hash, latitude.hashCode);
     _$hash = $jc(_$hash, longitude.hashCode);
     _$hash = $jc(_$hash, accuracyM.hashCode);
+    _$hash = $jc(_$hash, presenceCode.hashCode);
     _$hash = $jc(_$hash, isMocked.hashCode);
     _$hash = $jc(_$hash, faceImageBase64.hashCode);
     _$hash = $jc(_$hash, aadhaarPidXml.hashCode);
@@ -151,6 +156,7 @@ class _$CreatePunchDto extends CreatePunchDto {
           ..add('latitude', latitude)
           ..add('longitude', longitude)
           ..add('accuracyM', accuracyM)
+          ..add('presenceCode', presenceCode)
           ..add('isMocked', isMocked)
           ..add('faceImageBase64', faceImageBase64)
           ..add('aadhaarPidXml', aadhaarPidXml)
@@ -191,6 +197,10 @@ class CreatePunchDtoBuilder
   num? get accuracyM => _$this._accuracyM;
   set accuracyM(num? accuracyM) => _$this._accuracyM = accuracyM;
 
+  String? _presenceCode;
+  String? get presenceCode => _$this._presenceCode;
+  set presenceCode(String? presenceCode) => _$this._presenceCode = presenceCode;
+
   bool? _isMocked;
   bool? get isMocked => _$this._isMocked;
   set isMocked(bool? isMocked) => _$this._isMocked = isMocked;
@@ -223,6 +233,7 @@ class CreatePunchDtoBuilder
       _latitude = $v.latitude;
       _longitude = $v.longitude;
       _accuracyM = $v.accuracyM;
+      _presenceCode = $v.presenceCode;
       _isMocked = $v.isMocked;
       _faceImageBase64 = $v.faceImageBase64;
       _aadhaarPidXml = $v.aadhaarPidXml;
@@ -261,6 +272,7 @@ class CreatePunchDtoBuilder
               longitude, r'CreatePunchDto', 'longitude'),
           accuracyM: BuiltValueNullFieldError.checkNotNull(
               accuracyM, r'CreatePunchDto', 'accuracyM'),
+          presenceCode: presenceCode,
           isMocked: isMocked,
           faceImageBase64: faceImageBase64,
           aadhaarPidXml: aadhaarPidXml,

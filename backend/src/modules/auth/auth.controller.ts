@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, HttpCode, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import {
   ApiAcceptedResponse,
   ApiBearerAuth,
@@ -14,7 +14,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import type { AuthUser } from '../../shared/auth/auth-user';
-import { CurrentUser, Public, Roles } from '../../shared/auth/decorators';
+import { CurrentUser, Public, Roles, UserAgent } from '../../shared/auth/decorators';
 import { Role } from '../../shared/auth/roles';
 import { ProblemDetailsDto } from '../../shared/errors/problem-details.dto';
 import { StaffProfileDto } from '../staff/dto/staff-profile.dto';
@@ -62,7 +62,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Exchange the SMS code for tokens' })
   @ApiOkResponse({ type: SessionTokensDto })
   @ApiUnauthorizedResponse({ type: ProblemDetailsDto, description: 'AUTH_OTP_INVALID / AUTH_OTP_EXPIRED' })
-  verifyOtp(@Body() dto: OtpVerifyDto, @Headers('user-agent') userAgent?: string): Promise<SessionTokensDto> {
+  verifyOtp(@Body() dto: OtpVerifyDto, @UserAgent() userAgent?: string): Promise<SessionTokensDto> {
     return this.auth.verifyOtp(dto.phone, dto.code, { deviceId: dto.deviceId, userAgent });
   }
 
@@ -73,7 +73,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Web dashboard sign-in (ADMIN, WARD_INSPECTOR, OFFICE_STAFF)' })
   @ApiOkResponse({ type: SessionTokensDto })
   @ApiUnauthorizedResponse({ type: ProblemDetailsDto, description: 'AUTH_INVALID_CREDENTIALS' })
-  login(@Body() dto: PasswordLoginDto, @Headers('user-agent') userAgent?: string): Promise<SessionTokensDto> {
+  login(@Body() dto: PasswordLoginDto, @UserAgent() userAgent?: string): Promise<SessionTokensDto> {
     return this.auth.passwordLogin(dto.identifier, dto.password, { deviceId: dto.deviceId, userAgent });
   }
 
@@ -84,7 +84,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Development / test only: sign in without OTP. 404 in production.' })
   @ApiOkResponse({ type: SessionTokensDto })
   @ApiNotFoundResponse({ type: ProblemDetailsDto })
-  testLogin(@Body() dto: TestLoginDto, @Headers('user-agent') userAgent?: string): Promise<SessionTokensDto> {
+  testLogin(@Body() dto: TestLoginDto, @UserAgent() userAgent?: string): Promise<SessionTokensDto> {
     return this.auth.testLogin(dto.identifier, { deviceId: dto.deviceId, userAgent });
   }
 

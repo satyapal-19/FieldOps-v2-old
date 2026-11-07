@@ -149,3 +149,14 @@ export class LocationCheckResultDto {
   @ApiProperty({ description: 'Inside, or within the 25 m edge allowance' }) withinTolerance: boolean;
   @ApiProperty({ example: 11.1 }) distanceToEdgeMeters: number;
 }
+
+/** What citizens see of a ward: name and boundary only. */
+export class PublicWardDto {
+  @ApiProperty({ format: 'uuid' }) id: string;
+  @ApiProperty({ example: 'W04' }) code: string;
+  @ApiProperty() name: string;
+  @ApiProperty() nameMr: string;
+  @ApiProperty({ enum: ZONES }) zone: Zone;
+  @ApiProperty({ type: 'object', additionalProperties: true, description: 'GeoJSON Polygon' })
+  boundary: Record<string, unknown>;
+}
