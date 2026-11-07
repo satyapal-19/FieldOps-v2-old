@@ -1,12 +1,32 @@
-import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/controllers/auth_controller.dart';
+import 'dart:io';
 
+import 'package:fieldops_api/fieldops_api.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
+
+import '../../../core/api/api_failure.dart';
+import '../../../core/api/api_service.dart';
+import '../../../core/controllers/auth_controller.dart';
+import '../../../core/outbox/outbox.dart';
+import '../../../core/outbox/outbox_service.dart';
+
+/// My tasks (`GET /tasks`) and the two assignee actions, START and SUBMIT,
+/// which go through the outbox so they survive a dead network.
 class TaskController extends GetxController {
-  final _supabase = Supabase.instance.client;
-  final tasks     = <Map<String, dynamic>>[].obs;
+  static const _uuid = Uuid();
+
+  ApiService get _api => Get.find<ApiService>();
+  AuthController get _auth => Get.find<AuthController>();
+
   final isLoading = false.obs;
-  final filter    = 'ALL'.obs;
+  final tasks = <TaskDto>[].obs;
+  final filter = 'ALL'.obs;
+  final Rx<ApiFailure?> failure = Rx(null);
+
+  /// Tasks with an update still in the outbox, and the status it will set.
+  final queued = <String, TaskDtoStatusEnum>{}.obs;
 
   @override
   void onInit() {
@@ -17,67 +37,60 @@ class TaskController extends GetxController {
   Future<void> loadTasks() async {
     isLoading.value = true;
     try {
-      final auth = Get.find<AuthController>();
-      final staffId = auth.currentStaff.value?['id'];
-      final wardId = auth.currentStaff.value?['ward_id'];
-      final isSupervisor = auth.isSupervisor;
-
-      List<dynamic> data = [];
-
-      // 1. Try loading tasks specifically assigned to this staff member
-      if (staffId != null) {
-        var query = _supabase.from('tasks').select();
-        if (filter.value != 'ALL') {
-          query = query.eq('status', filter.value);
-        }
-        if (isSupervisor) {
-          // Supervisors see all tasks in their zone / system
-          data = await query.order('created_at', ascending: false).limit(30);
-        } else {
-          // Field staff see their tasks or tasks in their ward
-          data = await query
-              .or('assigned_to.eq.$staffId,ward_id.eq.$wardId')
-              .order('created_at', ascending: false)
-              .limit(30);
-          
-          // If no specific tasks assigned, load open field tasks for this ward
-          if (data.isEmpty && wardId != null) {
-            var fallbackQuery = _supabase.from('tasks').select().eq('ward_id', wardId);
-            if (filter.value != 'ALL') {
-              fallbackQuery = fallbackQuery.eq('status', filter.value);
-            }
-            data = await fallbackQuery.order('created_at', ascending: false).limit(20);
-          }
-        }
-      }
-
-      tasks.value = List<Map<String, dynamic>>.from(data);
+      final page = (await _api.tasks.tasksControllerList(
+        assignedToId: _auth.staffId,
+        status: filter.value == 'ALL' ? null : filter.value,
+        pageSize: 100,
+      ))
+          .data!;
+      tasks.assignAll(page.items);
+      failure.value = null;
     } catch (e) {
-      Get.log('Error loading tasks: $e');
+      failure.value = ApiFailure.from(e);
     } finally {
       isLoading.value = false;
     }
   }
 
-  Future<void> startTask(String taskId) async {
-    await _supabase.from('tasks').update({
-      'status':     'IN_PROGRESS',
-      'started_at': DateTime.now().toIso8601String(),
-    }).eq('id', taskId);
-    await loadTasks();
+  TaskDtoStatusEnum statusOf(TaskDto t) => queued[t.id] ?? t.status;
+
+  Future<void> startTask(TaskDto task) => _update(task, AssigneeUpdateDtoActionEnum.START,
+      TaskDtoStatusEnum.IN_PROGRESS);
+
+  Future<void> submitTask(TaskDto task, {required String note, File? photo}) async {
+    String? kept;
+    if (photo != null) {
+      // Move the photo where the outbox can find it after a restart.
+      final dir = await OutboxService.photoDir();
+      kept = p.join(dir.path, '${_uuid.v4()}${p.extension(photo.path)}');
+      await photo.copy(kept);
+    }
+    await _update(task, AssigneeUpdateDtoActionEnum.SUBMIT, TaskDtoStatusEnum.SUBMITTED,
+        note: note, photoPath: kept);
   }
 
-  Future<void> submitTask({
-    required String taskId,
-    required String afterPhotoUrl,
-    required String note,
+  Future<void> _update(
+    TaskDto task,
+    AssigneeUpdateDtoActionEnum action,
+    TaskDtoStatusEnum next, {
+    String? note,
+    String? photoPath,
   }) async {
-    await _supabase.from('tasks').update({
-      'status':          'SUBMITTED',
-      'after_photo_url': afterPhotoUrl,
-      'completion_note': note,
-      'completed_at':    DateTime.now().toIso8601String(),
-    }).eq('id', taskId);
-    await loadTasks();
+    final pos = await Geolocator.getLastKnownPosition();
+    final update = AssigneeUpdateDto((b) => b
+      ..clientUuid = _uuid.v4()
+      ..action = action
+      ..note = (note == null || note.isEmpty) ? null : note
+      ..lat = pos?.latitude
+      ..lng = pos?.longitude);
+    queued[task.id] = next;
+    final outbox = Get.find<OutboxService>();
+    await outbox.addTaskUpdate(task.id, update, photoPath: photoPath);
+    await outbox.flush();
+    // Sent if online: show the server's state.
+    if (await outbox.outbox.pending(OutboxKind.taskUpdate) == 0) {
+      queued.remove(task.id);
+      await loadTasks();
+    }
   }
 }

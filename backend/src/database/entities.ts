@@ -24,6 +24,9 @@ import { Ward } from '../modules/wards/entities/ward.entity';
 import { AuditLog } from '../shared/audit/audit-log.entity';
 import { RouteSummary } from '../modules/attendance/entities/route-summary.entity';
 import { WardDailySummary } from '../modules/attendance/entities/ward-daily-summary.entity';
+import { Upload } from '../modules/uploads/entities/upload.entity';
+import { Notification } from '../modules/notifications/entities/notification.entity';
+import { PushToken } from '../modules/notifications/entities/push-token.entity';
 import { JobLock } from '../shared/jobs/job-lock.entity';
 
 /** Every TypeORM entity. Add new entities here when a module adds one. */
@@ -55,4 +58,7 @@ export const ENTITIES = [
   ConversationParticipant,
   Message,
   JobLock,
+  Upload,
+  Notification,
+  PushToken,
 ];

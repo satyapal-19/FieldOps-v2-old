@@ -11,6 +11,5 @@ class NavigationController extends GetxController {
   void goHome()    => navigateTo(0);
   void goMap()     => navigateTo(1);
   void goTasks()   => navigateTo(2);
-  void goChat()    => navigateTo(3);
-  void goMore()    => navigateTo(4);
+  void goMore()    => navigateTo(3);
 }

@@ -43,6 +43,20 @@ export interface Env {
   JOBS_ENABLED: boolean;
   PING_RETENTION_DAYS: number;
   SEED_WEB_PASSWORD?: string;
+  MOBILE_MIN_VERSION_CODE: number;
+  MOBILE_LATEST_VERSION_CODE: number;
+  MOBILE_UPDATE_URL?: string;
+  UPLOAD_DIR: string;
+  UPLOAD_MAX_BYTES: number;
+  FCM_PROJECT_ID?: string;
+  FCM_CLIENT_EMAIL?: string;
+  FCM_PRIVATE_KEY?: string;
+  NOTIFY_SMS_URL?: string;
+  NOTIFY_WHATSAPP_URL?: string;
+  NOTIFY_GATEWAY_TOKEN?: string;
+  SPOT_CHECK_DAILY_RATE: number;
+  COPRESENCE_REQUIRED: boolean;
+  TILE_DIR?: string;
 
   FACE_PROVIDER: FaceProvider;
   FACE_MATCH_THRESHOLD: number;
@@ -67,7 +81,11 @@ export type OtpSenderKind = 'log' | 'sms_http' | 'disabled';
 
 /** Required only when FACE_PROVIDER=aadhaar. */
 const aadhaarRequired = () =>
-  Joi.string().when('FACE_PROVIDER', { is: 'aadhaar', then: Joi.required(), otherwise: Joi.optional() });
+  Joi.string().when('FACE_PROVIDER', {
+    is: 'aadhaar',
+    then: Joi.required(),
+    otherwise: Joi.optional(),
+  });
 
 const isProduction = { is: 'production' } as const;
 
@@ -97,7 +115,11 @@ const schema = Joi.object<Env>({
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number()
     .port()
-    .when('DB_TYPE', { is: 'oracle', then: Joi.number().default(1521), otherwise: Joi.number().default(5432) }),
+    .when('DB_TYPE', {
+      is: 'oracle',
+      then: Joi.number().default(1521),
+      otherwise: Joi.number().default(5432),
+    }),
   DB_USERNAME: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
   DB_NAME: Joi.string().when('DB_TYPE', {
@@ -144,11 +166,16 @@ const schema = Joi.object<Env>({
     .pattern(/^https?:\/\/[^\s]+$/)
     .pattern(/\{phone\}.*\{message\}|\{message\}.*\{phone\}/)
     .when('OTP_SENDER', { is: 'sms_http', then: Joi.required(), otherwise: Joi.optional() })
-    .messages({ 'string.pattern.base': 'SMS_GATEWAY_URL must be an http(s) URL containing {phone} and {message}' }),
+    .messages({
+      'string.pattern.base':
+        'SMS_GATEWAY_URL must be an http(s) URL containing {phone} and {message}',
+    }),
   SMS_GATEWAY_METHOD: Joi.string().valid('GET', 'POST').default('GET'),
   SMS_OTP_MESSAGE: Joi.string()
     .pattern(/\{otp\}/)
-    .default('{otp} is your FieldOps SMKMC login code. Valid for {minutes} minutes. Do not share it.'),
+    .default(
+      '{otp} is your FieldOps SMKMC login code. Valid for {minutes} minutes. Do not share it.',
+    ),
   SMS_SENDER_ID: Joi.string().allow('').default(''),
   SMS_DLT_TEMPLATE_ID: Joi.string().allow('').default(''),
   SMS_TIMEOUT_MS: Joi.number().integer().min(1000).max(30000).default(8000),
@@ -157,16 +184,26 @@ const schema = Joi.object<Env>({
   RATE_LIMIT_PER_MINUTE: Joi.number()
     .integer()
     .min(1)
-    .when('NODE_ENV', { is: 'test', then: Joi.number().default(100000), otherwise: Joi.number().default(300) }),
+    .when('NODE_ENV', {
+      is: 'test',
+      then: Joi.number().default(100000),
+      otherwise: Joi.number().default(300),
+    }),
   SIGN_IN_RATE_LIMIT_PER_MINUTE: Joi.number()
     .integer()
     .min(1)
-    .when('NODE_ENV', { is: 'test', then: Joi.number().default(100000), otherwise: Joi.number().default(30) }),
+    .when('NODE_ENV', {
+      is: 'test',
+      then: Joi.number().default(100000),
+      otherwise: Joi.number().default(30),
+    }),
   // Behind IIS / a reverse proxy set to the number of proxy hops (e.g. 1), so client IPs are real.
   // false | true | a hop count | Express address names (e.g. loopback: trust only proxies on
   // this machine, so IIS -> API and IIS -> Next.js -> API both resolve the real client).
   TRUST_PROXY: Joi.string()
-    .pattern(/^(false|true|\d{1,2}|(loopback|linklocal|uniquelocal)(,(loopback|linklocal|uniquelocal))*)$/)
+    .pattern(
+      /^(false|true|\d{1,2}|(loopback|linklocal|uniquelocal)(,(loopback|linklocal|uniquelocal))*)$/,
+    )
     .default('false'),
 
   // Scheduled jobs. Tests run them directly with a frozen clock, so they are off there.
@@ -177,6 +214,38 @@ const schema = Joi.object<Env>({
   }),
   // Raw location pings are purged after this many days (SMKC policy); route summaries stay.
   PING_RETENTION_DAYS: Joi.number().integer().min(7).max(365).default(90),
+  // Mobile app: builds below the minimum must update before use (Android versionCode).
+  MOBILE_MIN_VERSION_CODE: Joi.number().integer().min(1).default(1),
+  MOBILE_LATEST_VERSION_CODE: Joi.number()
+    .integer()
+    .min(Joi.ref('MOBILE_MIN_VERSION_CODE'))
+    .default(Joi.ref('MOBILE_MIN_VERSION_CODE')),
+  MOBILE_UPDATE_URL: Joi.string()
+    .uri({ scheme: ['https', 'http'] })
+    .optional(),
+  // Photos staff attach (task evidence): kept on this server's disk, never a public cloud.
+  UPLOAD_DIR: Joi.string().default('storage/uploads'),
+  UPLOAD_MAX_BYTES: Joi.number().integer().min(50_000).max(10_000_000).default(2_000_000),
+  // Push through Firebase Cloud Messaging: all three or none (off = in-app inbox + polling).
+  FCM_PROJECT_ID: Joi.string().optional(),
+  FCM_CLIENT_EMAIL: Joi.string()
+    .email()
+    .when('FCM_PROJECT_ID', { is: Joi.exist(), then: Joi.required() }),
+  FCM_PRIVATE_KEY: Joi.string().when('FCM_PROJECT_ID', { is: Joi.exist(), then: Joi.required() }),
+  // SMS / WhatsApp through SMKC's gateway (a JSON POST); off unless a URL is set.
+  NOTIFY_SMS_URL: Joi.string()
+    .uri({ scheme: ['https', 'http'] })
+    .optional(),
+  NOTIFY_WHATSAPP_URL: Joi.string()
+    .uri({ scheme: ['https', 'http'] })
+    .optional(),
+  NOTIFY_GATEWAY_TOKEN: Joi.string().optional(),
+  // Share of checked-in field staff who get one random spot check per shift (0 = off).
+  SPOT_CHECK_DAILY_RATE: Joi.number().min(0).max(1).default(0.3),
+  // Proxy punches must carry the worker's rolling QR code (off for the pilot; a code sent is always checked).
+  COPRESENCE_REQUIRED: Joi.boolean().default(false),
+  // Offline OSM tile pack (z/x/y.png + manifest.json) served at /tiles; unset = no local tiles.
+  TILE_DIR: Joi.string().optional(),
   // Development / test only: the sample seed gives the web roles this password.
   SEED_WEB_PASSWORD: Joi.string().when('NODE_ENV', {
     ...isProduction,
@@ -202,7 +271,10 @@ const schema = Joi.object<Env>({
   AADHAAR_ASA_URL_TEMPLATE: Joi.string()
     .pattern(/\{ver\}.*\{ac\}.*\{uid0\}.*\{uid1\}.*\{asalk\}/)
     .when('FACE_PROVIDER', { is: 'aadhaar', then: Joi.required(), otherwise: Joi.optional() })
-    .messages({ 'string.pattern.base': 'AADHAAR_ASA_URL_TEMPLATE must contain {ver}, {ac}, {uid0}, {uid1} and {asalk}' }),
+    .messages({
+      'string.pattern.base':
+        'AADHAAR_ASA_URL_TEMPLATE must contain {ver}, {ac}, {uid0}, {uid1} and {asalk}',
+    }),
   AADHAAR_SIGNING_KEY_PATH: aadhaarRequired(),
   AADHAAR_SIGNING_CERT_PATH: aadhaarRequired(),
   AADHAAR_DEVICE_UDC: Joi.string().optional(),

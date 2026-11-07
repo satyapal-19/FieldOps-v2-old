@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fieldops_api/fieldops_api.dart';
+
+import '../../../core/controllers/auth_controller.dart';
 import '../../../core/routes/app_routes.dart';
+import '../../../core/services/app_config_service.dart';
 import '../../../core/theme/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,10 +35,25 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _animController.forward();
 
-    // After splash, navigate directly to OTP Login Screen
-    Future.delayed(const Duration(milliseconds: 1400), () {
-      Get.offAllNamed(AppRoutes.otpLogin);
-    });
+    _route();
+  }
+
+  /// Version gate, then the saved session (if any) or sign-in.
+  Future<void> _route() async {
+    final results = await Future.wait([
+      AppConfigService.fetch(),
+      Future<void>.delayed(const Duration(milliseconds: 1200)),
+    ]);
+    final info = results.first as AppInfoDto?;
+    if (AppConfigService.needsUpdate(info)) {
+      Get.offAllNamed(AppRoutes.updateRequired, arguments: info!.updateUrl);
+      return;
+    }
+    if (info != null && AppConfigService.clockIsOff(DateTime.now().toUtc(), info.serverTime)) {
+      Get.snackbar('clock_wrong_title'.tr, 'clock_wrong_desc'.tr,
+          snackPosition: SnackPosition.BOTTOM, duration: const Duration(seconds: 6));
+    }
+    await Get.find<AuthController>().checkExistingSession();
   }
 
   @override

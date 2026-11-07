@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/api/api_failure.dart';
+import 'core/api/api_service.dart';
+import 'core/api/env.dart';
+import 'core/outbox/outbox_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routes/app_routes.dart';
 import 'core/bindings/initial_binding.dart';
@@ -12,31 +15,21 @@ import 'core/localization/app_translations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── Supabase initialization (legacy, removed in Phase 3) ──────
-  // Pass values with --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...
-  // No keys in source code (SMKC security rule).
-  await Supabase.initialize(
-    url: const String.fromEnvironment(
-      'SUPABASE_URL',
-      defaultValue: '',
-    ),
-    // ignore: deprecated_member_use
-    anonKey: const String.fromEnvironment(
-      'SUPABASE_ANON_KEY',
-      defaultValue: '',
-    ),
-  );
+  // Server address comes only from --dart-define=API_BASE_URL=... (no URLs in source).
+  if (!Env.isConfigured) {
+    debugPrint('API_BASE_URL is not set: pass --dart-define=API_BASE_URL=https://<server>');
+  }
+  await ErrorMessages.load();
+  Get.put(ApiService(), permanent: true);
+  Get.put(await OutboxService.open(), permanent: true);
 
-  // ── Workmanager (background GPS + offline sync) ───────────────
-  // Wrapped in try/catch — workmanager can fail on some emulators/test devices
+  // Background pings and outbox sync. Some emulators lack Workmanager; the
+  // foreground timer and the outbox's own retries still work without it.
   try {
     await Workmanager().initialize(workmanagerCallbackDispatcher);
-
-    // Register background offline-sync task (runs every 30 min when connected)
-    await LocationPingService().registerOfflineSync();
+    await LocationPingService().registerOutboxSync();
   } catch (e) {
     debugPrint('Workmanager init note (non-critical): $e');
-    // App continues to function without background tasks
   }
 
   String savedLang = 'mr';

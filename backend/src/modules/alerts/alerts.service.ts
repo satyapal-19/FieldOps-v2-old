@@ -12,6 +12,7 @@ import { StaffService } from '../staff/staff.service';
 import type { AlertDto, AlertPageDto, ListAlertsQueryDto } from './dto/alert.dto';
 import { Alert, AlertSeverity, AlertType } from './entities/alert.entity';
 import { alertScope, AlertRuleError, canHandleAlert, checkResolvable } from './alerts.policy';
+import { NotificationsService } from '../notifications/notifications.service';
 import { AlertFilter, AlertsRepository } from './alerts.repository';
 
 export function toAlertDto(a: Alert): AlertDto {
@@ -54,6 +55,7 @@ export class AlertsService {
   constructor(
     private readonly repo: AlertsRepository,
     private readonly staff: StaffService,
+    private readonly notifications: NotificationsService,
     private readonly clock: Clock,
     private readonly ids: IdGenerator,
     private readonly uow: UnitOfWork,
@@ -91,7 +93,36 @@ export class AlertsService {
       }
       throw error;
     }
+    // Inside a caller's transaction the alert may still roll back: only notify committed ones.
+    if (!tx) await this.notifySupervisors(row);
     return toAlertDto(row);
+  }
+
+  /**
+   * Tells the people who act on an alert: the person's inspector (reporting line) and the ward
+   * inspector of the ward. HIGH / CRITICAL alerts go out as high priority (push + SMS).
+   */
+  private async notifySupervisors(alert: Alert): Promise<void> {
+    try {
+      const person = alert.staffId ? await this.staff.findById(alert.staffId) : null;
+      const wardId = alert.wardId ?? person?.homeWardId ?? null;
+      const wardInspector = wardId ? await this.staff.findWardInspector(wardId) : null;
+      const to = [person?.reportsToId, wardInspector?.id].filter(
+        (id): id is string => !!id && id !== alert.staffId,
+      );
+      await this.notifications.notify(to, {
+        kind: 'ALERT',
+        priority: alert.severity === 'HIGH' || alert.severity === 'CRITICAL' ? 'HIGH' : 'NORMAL',
+        title: alert.message,
+        titleMr: alert.messageMr,
+        body: person ? `${person.fullName} (${person.employeeCode})` : null,
+        bodyMr: person ? `${person.fullNameMr ?? person.fullName} (${person.employeeCode})` : null,
+        refType: 'ALERT',
+        refId: alert.id,
+      });
+    } catch {
+      // Notifying is best effort; the alert itself is stored and listed.
+    }
   }
 
   async list(actor: AuthUser, q: ListAlertsQueryDto): Promise<AlertPageDto> {

@@ -1,10 +1,15 @@
+import 'package:fieldops_api/fieldops_api.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/controllers/auth_controller.dart';
+import 'package:uuid/uuid.dart';
 
+import '../../../core/api/api_service.dart';
+import '../../../core/controllers/auth_controller.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/ui/notify.dart';
+
+/// Leave requests and attendance corrections (regularization) for myself.
 class LeaveScreen extends StatefulWidget {
   const LeaveScreen({super.key});
 
@@ -13,361 +18,209 @@ class LeaveScreen extends StatefulWidget {
 }
 
 class _LeaveScreenState extends State<LeaveScreen> {
+  final _api = Get.find<ApiService>();
   final _auth = Get.find<AuthController>();
-  final _supabase = Supabase.instance.client;
-  final _reasonController = TextEditingController();
+  final _reason = TextEditingController();
+  final _df = DateFormat('dd MMM yyyy');
 
-  String _leaveType = 'CASUAL';
-  DateTime _fromDate = DateTime.now().add(const Duration(days: 1));
-  DateTime _toDate = DateTime.now().add(const Duration(days: 1));
-  bool _isLoading = false;
-  List<Map<String, dynamic>> _myLeaves = [];
+  // One UUID per form, renewed after a success: a retried submit is a no-op.
+  String _leaveUuid = const Uuid().v4();
+  String _fixUuid = const Uuid().v4();
+
+  CreateLeaveDtoLeaveTypeEnum _leaveType = CreateLeaveDtoLeaveTypeEnum.CASUAL;
+  CreateRegularizationDtoReasonTypeEnum _fixReason = CreateRegularizationDtoReasonTypeEnum.OUT_OF_NETWORK;
+  DateTime _from = DateTime.now().add(const Duration(days: 1));
+  DateTime _to = DateTime.now().add(const Duration(days: 1));
+  DateTime _fixDate = DateTime.now().subtract(const Duration(days: 1));
+  bool _correction = false;
+  bool _sending = false;
+  List<LeaveRequestDto> _leaves = [];
+  List<RegularizationRequestDto> _fixes = [];
 
   @override
   void initState() {
     super.initState();
-    _loadMyLeaves();
+    _load();
   }
 
   @override
   void dispose() {
-    _reasonController.dispose();
+    _reason.dispose();
     super.dispose();
   }
 
-  Future<void> _loadMyLeaves() async {
-    final staffId = _auth.currentStaff.value?['id'];
-    if (staffId == null) return;
+  Future<void> _load() async {
     try {
-      final res = await _supabase
-          .from('leave_requests')
-          .select()
-          .eq('staff_id', staffId)
-          .order('created_at', ascending: false);
-      setState(() => _myLeaves = List<Map<String, dynamic>>.from(res));
-    } catch (_) {}
+      final leaves = await _api.leave.leaveControllerListLeave(staffId: _auth.staffId, pageSize: 20);
+      final fixes = await _api.leave.leaveControllerListRegularizations(staffId: _auth.staffId, pageSize: 20);
+      if (!mounted) return;
+      setState(() {
+        _leaves = leaves.data!.items.toList();
+        _fixes = fixes.data!.items.toList();
+      });
+    } catch (e) {
+      Notify.failure(e);
+    }
   }
 
-  Future<void> _applyLeave() async {
-    if (_reasonController.text.trim().isEmpty) {
-      Get.snackbar('माहिती आवश्यक', 'कृपया रजेचे कारण लिहा');
+  Future<void> _submit() async {
+    final text = _reason.text.trim();
+    if (_correction && text.isEmpty) {
+      Notify.warn('explanation_required'.tr);
       return;
     }
-
-    setState(() => _isLoading = true);
-
+    setState(() => _sending = true);
     try {
-      final staffId = _auth.currentStaff.value?['id'];
-      final days = _toDate.difference(_fromDate).inDays + 1;
-
-      await _supabase.from('leave_requests').insert({
-        'staff_id': staffId,
-        'leave_type': _leaveType,
-        'from_date': DateFormat('yyyy-MM-dd').format(_fromDate),
-        'to_date': DateFormat('yyyy-MM-dd').format(_toDate),
-        'days_count': days,
-        'reason': _reasonController.text.trim(),
-        'status': 'PENDING',
-      });
-
-      _reasonController.clear();
-      await _loadMyLeaves();
-
-      Get.snackbar(
-        'अर्ज दाखल',
-        'तुमचा रजा अर्ज यशस्वीपणे दाखल झाला आहे!',
-        backgroundColor: Colors.green.shade700,
-        colorText: Colors.white,
-      );
+      if (_correction) {
+        await _api.leave.leaveControllerRequestRegularization(
+          createRegularizationDto: CreateRegularizationDto((b) => b
+            ..clientUuid = _fixUuid
+            ..attendanceDate = isoDay(_fixDate)
+            ..reasonType = _fixReason
+            ..explanation = text),
+        );
+        _fixUuid = const Uuid().v4();
+      } else {
+        await _api.leave.leaveControllerRequestLeave(
+          createLeaveDto: CreateLeaveDto((b) => b
+            ..clientUuid = _leaveUuid
+            ..leaveType = _leaveType
+            ..fromDate = isoDay(_from)
+            ..toDate = isoDay(_to)
+            ..reason = text.isEmpty ? null : text),
+        );
+        _leaveUuid = const Uuid().v4();
+      }
+      _reason.clear();
+      Notify.ok('request_sent'.tr);
+      await _load();
     } catch (e) {
-      Get.snackbar('त्रुटी', 'अर्ज पाठवता आला नाही: $e');
+      Notify.failure(e);
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _sending = false);
     }
   }
+
+  Future<void> _cancel(LeaveRequestDto l) async {
+    try {
+      await _api.leave.leaveControllerCancelLeave(
+        id: l.id,
+        cancelRequestDto: CancelRequestDto((b) => b..expectedVersion = l.version),
+      );
+      await _load();
+    } catch (e) {
+      Notify.failure(e);
+    }
+  }
+
+  Future<DateTime?> _pick(DateTime initial, {bool past = false}) => showDatePicker(
+        context: context,
+        initialDate: initial,
+        firstDate: DateTime.now().subtract(const Duration(days: 31)),
+        lastDate: past ? DateTime.now() : DateTime.now().add(const Duration(days: 180)),
+      );
+
+  Widget _dateField(String label, DateTime value, ValueChanged<DateTime> onPicked, {bool past = false}) =>
+      Expanded(
+        child: OutlinedButton(
+          onPressed: () async {
+            final d = await _pick(value, past: past);
+            if (d != null) setState(() => onPicked(d));
+          },
+          child: Text('$label: ${_df.format(value)}'),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('dd MMM yyyy');
-
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('रजा व्यवस्थापन'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(title: Text('leave_and_corrections'.tr)),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            // Leave Balances card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+            SegmentedButton<bool>(
+              segments: [
+                ButtonSegment(value: false, label: Text('leave'.tr)),
+                ButtonSegment(value: true, label: Text('correction'.tr)),
+              ],
+              selected: {_correction},
+              onSelectionChanged: (s) => setState(() => _correction = s.first),
+            ),
+            const SizedBox(height: 16),
+            if (!_correction) ...[
+              DropdownButtonFormField<CreateLeaveDtoLeaveTypeEnum>(
+                initialValue: _leaveType,
+                decoration: InputDecoration(labelText: 'leave_type'.tr),
+                items: CreateLeaveDtoLeaveTypeEnum.values
+                    .map((t) => DropdownMenuItem(value: t, child: Text('leave_${t.name}'.tr)))
+                    .toList(),
+                onChanged: (t) => setState(() => _leaveType = t ?? _leaveType),
               ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('रजा शिल्लक (Leave Balance)',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _BalanceItem('Casual (CL)', '8/12', Colors.blue),
-                      _BalanceItem('Sick (SL)', '10/12', Colors.orange),
-                      _BalanceItem('Earned (EL)', '14/15', Colors.green),
-                    ],
-                  ),
-                ],
+              const SizedBox(height: 12),
+              Row(children: [
+                _dateField('from'.tr, _from, (d) {
+                  _from = d;
+                  if (_to.isBefore(d)) _to = d;
+                }),
+                const SizedBox(width: 8),
+                _dateField('to'.tr, _to, (d) => _to = d.isBefore(_from) ? _from : d),
+              ]),
+            ] else ...[
+              DropdownButtonFormField<CreateRegularizationDtoReasonTypeEnum>(
+                initialValue: _fixReason,
+                decoration: InputDecoration(labelText: 'correction_reason'.tr),
+                items: CreateRegularizationDtoReasonTypeEnum.values
+                    .map((t) => DropdownMenuItem(value: t, child: Text('fix_${t.name}'.tr)))
+                    .toList(),
+                onChanged: (t) => setState(() => _fixReason = t ?? _fixReason),
+              ),
+              const SizedBox(height: 12),
+              Row(children: [_dateField('date'.tr, _fixDate, (d) => _fixDate = d, past: true)]),
+            ],
+            const SizedBox(height: 12),
+            TextField(
+              controller: _reason,
+              maxLines: 3,
+              maxLength: 500,
+              decoration: InputDecoration(labelText: _correction ? 'explanation'.tr : 'reason_optional'.tr),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _sending ? null : _submit,
+                child: _sending
+                    ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Text('submit'.tr),
               ),
             ),
-
-            const SizedBox(height: 20),
-
-            // Apply leave card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('नवीन रजा अर्ज',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 14),
-
-                  // Leave Type Selector
-                  DropdownButtonFormField<String>(
-                    initialValue: _leaveType,
-                    decoration: InputDecoration(
-                      labelText: 'रजेचा प्रकार',
-                      filled: true,
-                      fillColor: AppColors.background,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    ),
-
-                    items: const [
-                      DropdownMenuItem(value: 'CASUAL', child: Text('किरकोळ रजा (Casual Leave)')),
-                      DropdownMenuItem(value: 'SICK', child: Text('वैद्यकीय रजा (Sick Leave)')),
-                      DropdownMenuItem(value: 'EARNED', child: Text('हक्काची रजा (Earned Leave)')),
-                    ],
-                    onChanged: (val) => setState(() => _leaveType = val!),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Date range picker row
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final d = await showDatePicker(
-                              context: context,
-                              initialDate: _fromDate,
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(const Duration(days: 90)),
-                            );
-                            if (d != null) {
-                              setState(() {
-                                _fromDate = d;
-                                if (_toDate.isBefore(_fromDate)) _toDate = _fromDate;
-                              });
-                            }
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('या तारखेपासून', style: TextStyle(fontSize: 11, color: AppColors.subtle)),
-                                const SizedBox(height: 4),
-                                Text(dateFormat.format(_fromDate), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final d = await showDatePicker(
-                              context: context,
-                              initialDate: _toDate,
-                              firstDate: _fromDate,
-                              lastDate: DateTime.now().add(const Duration(days: 90)),
-                            );
-                            if (d != null) setState(() => _toDate = d);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                            decoration: BoxDecoration(
-                              color: AppColors.background,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('या तारखेपर्यंत', style: TextStyle(fontSize: 11, color: AppColors.subtle)),
-                                const SizedBox(height: 4),
-                                Text(dateFormat.format(_toDate), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Reason text field
-                  TextField(
-                    controller: _reasonController,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      hintText: 'रजेचे कारण लिहा...',
-                      hintStyle: const TextStyle(fontFamily: 'NotoSansDevanagari', color: AppColors.subtle, fontSize: 13),
-                      filled: true,
-                      fillColor: AppColors.background,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  FilledButton(
-                    onPressed: _isLoading ? null : _applyLeave,
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                        : const Text('रजेसाठी अर्ज करा', style: TextStyle(fontFamily: 'NotoSansDevanagari', fontSize: 15)),
-                  ),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 24),
-
-            // Past Leaves List
-            const Text('मागील अर्ज (Leave History)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 10),
-
-            _myLeaves.isEmpty
-                ? Container(
-                    padding: const EdgeInsets.all(24),
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+            Text('my_requests'.tr, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 8),
+            if (!_correction)
+              ..._leaves.map((l) => Card(
+                    child: ListTile(
+                      title: Text('leave_${l.leaveType.name}'.tr),
+                      subtitle: Text(
+                          '${_df.format(DateTime.parse(l.fromDate))} – ${_df.format(DateTime.parse(l.toDate))} · ${'request_${l.status.name}'.tr}'),
+                      trailing: l.status == LeaveRequestDtoStatusEnum.PENDING
+                          ? TextButton(onPressed: () => _cancel(l), child: Text('cancel'.tr))
+                          : null,
                     ),
-                    child: const Center(
-                      child: Text('कोणताही रजा अर्ज नाही', style: TextStyle(color: AppColors.subtle)),
+                  ))
+            else
+              ..._fixes.map((r) => Card(
+                    child: ListTile(
+                      title: Text('fix_${r.reasonType.name}'.tr),
+                      subtitle: Text(
+                          '${_df.format(DateTime.parse(r.attendanceDate))} · ${'request_${r.status.name}'.tr}'),
                     ),
-                  )
-                : ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _myLeaves.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, i) {
-                      final item = _myLeaves[i];
-                      final status = item['status'] as String? ?? 'PENDING';
-                      final from = item['from_date'] ?? '';
-                      final to = item['to_date'] ?? '';
-                      final days = item['days_count'] ?? 1;
-
-                      final (statusLabel, statusColor) = switch (status) {
-                        'APPROVED' => ('मंजूर ✓', Colors.green),
-                        'REJECTED' => ('नाकारले ✗', Colors.red),
-                        _ => ('प्रलंबित ⏳', Colors.orange),
-                      };
-
-                      return Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: statusColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                statusLabel,
-                                style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('${item['leave_type']} ($days दिवस)',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                  const SizedBox(height: 2),
-                                  Text('$from ते $to', style: const TextStyle(fontSize: 12, color: AppColors.subtle)),
-                                  if (item['reason'] != null)
-                                    Text('${item['reason']}',
-                                        style: const TextStyle(fontSize: 11, color: AppColors.onSurface),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                  )),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _BalanceItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _BalanceItem(this.label, this.value, this.color);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(value, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: color)),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.subtle)),
-      ],
     );
   }
 }

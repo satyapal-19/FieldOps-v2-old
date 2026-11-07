@@ -12,17 +12,23 @@ import 'package:fieldops_api/src/auth/oauth.dart';
 import 'package:fieldops_api/src/api/alerts_api.dart';
 import 'package:fieldops_api/src/api/attendance_api.dart';
 import 'package:fieldops_api/src/api/auth_api.dart';
+import 'package:fieldops_api/src/api/chat_api.dart';
 import 'package:fieldops_api/src/api/complaints_api.dart';
 import 'package:fieldops_api/src/api/face_api.dart';
 import 'package:fieldops_api/src/api/health_api.dart';
 import 'package:fieldops_api/src/api/holidays_api.dart';
 import 'package:fieldops_api/src/api/leave_api.dart';
+import 'package:fieldops_api/src/api/notifications_api.dart';
 import 'package:fieldops_api/src/api/offices_api.dart';
 import 'package:fieldops_api/src/api/public_api.dart';
+import 'package:fieldops_api/src/api/reports_api.dart';
 import 'package:fieldops_api/src/api/rosters_api.dart';
 import 'package:fieldops_api/src/api/shifts_api.dart';
+import 'package:fieldops_api/src/api/spot_checks_api.dart';
 import 'package:fieldops_api/src/api/staff_api.dart';
 import 'package:fieldops_api/src/api/tasks_api.dart';
+import 'package:fieldops_api/src/api/tiles_api.dart';
+import 'package:fieldops_api/src/api/uploads_api.dart';
 import 'package:fieldops_api/src/api/wards_api.dart';
 
 class FieldopsApi {
@@ -97,6 +103,12 @@ class FieldopsApi {
     return AuthApi(dio, serializers);
   }
 
+  /// Get ChatApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ChatApi getChatApi() {
+    return ChatApi(dio, serializers);
+  }
+
   /// Get ComplaintsApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   ComplaintsApi getComplaintsApi() {
@@ -127,6 +139,12 @@ class FieldopsApi {
     return LeaveApi(dio, serializers);
   }
 
+  /// Get NotificationsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  NotificationsApi getNotificationsApi() {
+    return NotificationsApi(dio, serializers);
+  }
+
   /// Get OfficesApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   OfficesApi getOfficesApi() {
@@ -137,6 +155,12 @@ class FieldopsApi {
   /// by doing that all interceptors will not be executed
   PublicApi getPublicApi() {
     return PublicApi(dio, serializers);
+  }
+
+  /// Get ReportsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  ReportsApi getReportsApi() {
+    return ReportsApi(dio, serializers);
   }
 
   /// Get RostersApi instance, base route and serializer can be overridden by a given but be careful,
@@ -151,6 +175,12 @@ class FieldopsApi {
     return ShiftsApi(dio, serializers);
   }
 
+  /// Get SpotChecksApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  SpotChecksApi getSpotChecksApi() {
+    return SpotChecksApi(dio, serializers);
+  }
+
   /// Get StaffApi instance, base route and serializer can be overridden by a given but be careful,
   /// by doing that all interceptors will not be executed
   StaffApi getStaffApi() {
@@ -161,6 +191,18 @@ class FieldopsApi {
   /// by doing that all interceptors will not be executed
   TasksApi getTasksApi() {
     return TasksApi(dio, serializers);
+  }
+
+  /// Get TilesApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  TilesApi getTilesApi() {
+    return TilesApi(dio, serializers);
+  }
+
+  /// Get UploadsApi instance, base route and serializer can be overridden by a given but be careful,
+  /// by doing that all interceptors will not be executed
+  UploadsApi getUploadsApi() {
+    return UploadsApi(dio, serializers);
   }
 
   /// Get WardsApi instance, base route and serializer can be overridden by a given but be careful,

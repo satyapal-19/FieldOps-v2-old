@@ -22,7 +22,9 @@ const nextConfig = {
           },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          // Location stays available to this site's own pages (the citizen complaint form pins
+          // the spot); nothing embedded may ask for camera, microphone or location.
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
         ],
       },
     ];

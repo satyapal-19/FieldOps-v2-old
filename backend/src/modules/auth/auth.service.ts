@@ -300,9 +300,13 @@ export class AuthService {
    * request, so a revoked session or deactivated account stops working immediately.
    */
   async authenticate(accessToken: string): Promise<AuthUser> {
-    let claims: AccessTokenClaims;
+    return this.sessionUser(await this.verifyAccessToken(accessToken));
+  }
+
+  /** Checks the token's signature, issuer, audience and expiry only (no database), or throws 401. */
+  async verifyAccessToken(accessToken: string): Promise<AccessTokenClaims> {
     try {
-      claims = await this.jwt.verifyAsync<AccessTokenClaims>(accessToken, {
+      return await this.jwt.verifyAsync<AccessTokenClaims>(accessToken, {
         algorithms: ['HS256'],
         issuer: JWT_ISSUER,
         audience: JWT_AUDIENCE,
@@ -310,7 +314,10 @@ export class AuthService {
     } catch {
       throw new AppError(ErrorCode.UNAUTHENTICATED);
     }
+  }
 
+  /** The caller behind verified claims, if the session is live and the account active, or throws 401. */
+  async sessionUser(claims: AccessTokenClaims): Promise<AuthUser> {
     const now = this.clock.now();
     const session = await this.repo.findSession(claims.sid);
     if (

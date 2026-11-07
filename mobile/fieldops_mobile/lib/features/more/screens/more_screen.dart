@@ -6,7 +6,6 @@ import '../../../core/controllers/auth_controller.dart';
 import '../../../core/controllers/locale_controller.dart';
 import 'attendance_history_screen.dart';
 import 'leave_screen.dart';
-import 'payroll_screen.dart';
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
@@ -20,10 +19,8 @@ class MoreScreen extends StatelessWidget {
       // Observe locale changes reactively
       final _ = localeCtrl.currentLocale.value;
       final isEn = localeCtrl.currentLocale.value.languageCode == 'en';
-      final staff = auth.currentStaff.value;
-      final staffName = isEn
-          ? (staff?['name'] ?? auth.staffName)
-          : (auth.staffNameMr.isNotEmpty ? auth.staffNameMr : auth.staffName);
+      auth.profile.value;
+      final staffName = isEn ? auth.staffName : auth.staffNameMr;
       final staffInit = staffName.isNotEmpty ? staffName[0].toUpperCase() : 'S';
 
       return Scaffold(
@@ -103,7 +100,7 @@ class MoreScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
-                                auth.staffRole,
+                                'role_${auth.staffRole}'.tr,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -141,35 +138,15 @@ class MoreScreen extends StatelessWidget {
                     labelEn: 'View check-in & check-out logs',
                     onTap: () => Get.to(() => const AttendanceHistoryScreen()),
                   ),
-                  _MenuTile(
-                    icon: Icons.route,
-                    label: 'route_playback'.tr,
-                    labelEn: 'GPS Beat breadcrumbs',
-                    onTap: () {
-                      Get.snackbar(
-                        'route_playback'.tr,
-                        'बीट नकाशावर मार्ग इतिहास दाखवला आहे',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: AppColors.primary,
-                        colorText: Colors.white,
-                      );
-                    },
-                  ),
                   const SizedBox(height: 16),
 
-                  // Leave & Payroll
-                  _SectionHeader('leave_payroll_section'.tr),
+                  // Leave & corrections
+                  _SectionHeader('leave_and_corrections'.tr),
                   _MenuTile(
                     icon: Icons.calendar_today_outlined,
                     label: 'leave_apply'.tr,
                     labelEn: 'Apply for leave & view balance',
                     onTap: () => Get.to(() => const LeaveScreen()),
-                  ),
-                  _MenuTile(
-                    icon: Icons.account_balance_wallet_outlined,
-                    label: 'salary_slip'.tr,
-                    labelEn: 'Monthly pay slip & allowances',
-                    onTap: () => Get.to(() => const PayrollScreen()),
                   ),
                   const SizedBox(height: 16),
 
@@ -178,7 +155,7 @@ class MoreScreen extends StatelessWidget {
                   _MenuTile(
                     icon: Icons.person_outline,
                     label: 'my_profile'.tr,
-                    labelEn: 'Staff ID, ward, phone & email',
+                    labelEn: 'Staff ID, ward and phone',
                     onTap: () => _showProfileSheet(context, auth),
                   ),
                   _MenuTile(
@@ -279,15 +256,13 @@ class MoreScreen extends StatelessWidget {
 
   // ── Profile Sheet ─────────────────────────────────────────────
   void _showProfileSheet(BuildContext context, AuthController auth) {
-    final staff = auth.currentStaff.value;
-    final staffNameMr = auth.staffNameMr.isNotEmpty ? auth.staffNameMr : 'रमेश पाटील';
-    final staffNameEn = auth.staffName.isNotEmpty ? auth.staffName : 'Ramesh Patil';
-    final empId = staff?['employee_id'] ?? 'SMKMC-SAN-001';
-    final phone = staff?['phone'] ?? '+91 98220 11111';
-    final email = staff?['email'] ?? 'fieldops.staff@smkmc.gov.in';
-    final dept = auth.department.isNotEmpty ? auth.department : 'स्वच्छता विभाग (Sanitation)';
-    final ward = auth.wardName.isNotEmpty ? auth.wardName : 'प्रभाग क्र. ३ (गावभाग व मंडई, सांगली)';
-    final designation = auth.staffRole.isNotEmpty ? auth.staffRole : 'सफाई कामगार (Field Staff)';
+    final staffNameMr = auth.staffNameMr;
+    final staffNameEn = auth.staffName;
+    final empId = auth.employeeCode;
+    final phone = auth.phone;
+    final dept = auth.department.isEmpty ? '—' : auth.department;
+    final ward = auth.wardName.isEmpty ? '—' : auth.wardName;
+    final designation = 'role_${auth.staffRole}'.tr;
 
     Get.bottomSheet(
       Container(
@@ -375,7 +350,6 @@ class MoreScreen extends StatelessWidget {
               _ProfileDetailTile(icon: Icons.business, title: 'department_label'.tr, value: dept),
               _ProfileDetailTile(icon: Icons.location_on_outlined, title: 'ward_zone'.tr, value: ward),
               _ProfileDetailTile(icon: Icons.phone_android, title: 'mobile_number'.tr, value: phone),
-              _ProfileDetailTile(icon: Icons.email_outlined, title: 'email_id'.tr, value: email),
               _ProfileDetailTile(icon: Icons.access_time, title: 'shift_timing_label'.tr, value: 'सकाळ (06:00 AM – 02:00 PM)'),
               _ProfileDetailTile(icon: Icons.supervisor_account, title: 'supervisor_label'.tr, value: 'संजय पवार (स्वच्छता निरीक्षक, ९८२२० ५५५५५)'),
               _ProfileDetailTile(icon: Icons.verified_user_outlined, title: 'device_status'.tr, value: 'सक्रिय Android डिव्हाइस (बायोमेट्रिक नोंदणीकृत)'),

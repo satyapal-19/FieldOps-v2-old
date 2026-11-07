@@ -45,4 +45,5 @@ error text for every API code (Marathi / English) is copied from `openapi/error-
 - `src/features/<feature>/` components and hooks per feature
 - `src/shared/` shared UI (error banner, maps)
 
-The current Vite app in `../fieldops-web` stays until every page is ported (Phase 3).
+Every page of the legacy Vite app is ported (payroll and QR checkpoints are out of scope; chat
+returns with its backend in Phase 4), so that app has been removed.

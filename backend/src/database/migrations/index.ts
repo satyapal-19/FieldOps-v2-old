@@ -7,6 +7,9 @@ import { CreateTasksAndRequests1793318400200 } from './1793318400200-create-task
 import { CreateChat1793318400300 } from './1793318400300-create-chat';
 import { CreateLivenessChallenges1793404800000 } from './1793404800000-create-liveness-challenges';
 import { CreateJobsAndSummaries1793404800100 } from './1793404800100-create-jobs-and-summaries';
+import { CreateUploads1793491200000 } from './1793491200000-create-uploads';
+import { CreateNotifications1793577600000 } from './1793577600000-create-notifications';
+import { UploadVoiceNotes1793577600100 } from './1793577600100-upload-voice-notes';
 
 /** Every migration, oldest first. Add new migrations at the end. */
 export const MIGRATIONS = [
@@ -19,4 +22,7 @@ export const MIGRATIONS = [
   CreateChat1793318400300,
   CreateLivenessChallenges1793404800000,
   CreateJobsAndSummaries1793404800100,
+  CreateUploads1793491200000,
+  CreateNotifications1793577600000,
+  UploadVoiceNotes1793577600100,
 ];

@@ -3,6 +3,7 @@ import { randomInt } from 'node:crypto';
 import { AuditWriter } from '../../shared/audit/audit-writer';
 import type { AuthUser } from '../../shared/auth/auth-user';
 import { Clock } from '../../shared/clock/clock';
+import { AppConfig } from '../../shared/config/app-config';
 import { addDays, istDate } from '../../shared/clock/ist';
 import { isUniqueViolation } from '../../shared/database/db-errors';
 import { UnitOfWork } from '../../shared/database/unit-of-work';
@@ -48,10 +49,44 @@ import type {
   ChallengeDto,
   CreatePunchDto,
   ListAttendanceQueryDto,
+  PresenceKeyDto,
   PunchResultDto,
 } from './dto/attendance.dto';
 import { AttendanceLog } from './entities/attendance-log.entity';
 import type { LivenessChallenge } from './entities/liveness-challenge.entity';
+import {
+  copresenceOutcome,
+  PRESENCE_DIGITS,
+  PRESENCE_PERIOD_SECONDS,
+  presenceKey,
+  verifyPresenceCode,
+} from './copresence.policy';
+
+/** The face part of a proof: a punch or a spot-check answer carries the same fields. */
+type FaceProof = Pick<
+  CreatePunchDto,
+  'challengeId' | 'faceImageBase64' | 'aadhaarPidXml' | 'aadhaarTxn'
+>;
+
+/** What a spot-check answer sends to prove presence. */
+export type PresenceProof = FaceProof & { latitude: number; longitude: number; accuracyM: number };
+
+export interface PresenceResult {
+  attendanceId: string;
+  wardId: string | null;
+  inGeofence: boolean;
+  distanceM: number | null;
+  faceScore: number | null;
+}
+
+export interface OnDuty {
+  attendanceId: string;
+  staffId: string;
+  wardId: string;
+  date: string;
+  checkinAt: Date;
+  shiftEndsAt: Date;
+}
 
 const num = (v: number | string | null): number | null => (v === null ? null : Number(v));
 const bool = (v: unknown): boolean => Boolean(Number(v));
@@ -127,6 +162,7 @@ export class AttendanceService {
     private readonly face: FaceVerifier,
     private readonly alerts: AlertsService,
     private readonly clock: Clock,
+    private readonly config: AppConfig,
     private readonly ids: IdGenerator,
     private readonly uow: UnitOfWork,
     private readonly audit: AuditWriter,
@@ -206,6 +242,7 @@ export class AttendanceService {
 
     const assignment = await this.assignmentFacts(shift.date, subject.id);
     const mode = punchMode(actor, subject, assignment);
+    const copresence = this.checkCopresence(mode, subject.id, dto.presenceCode, now);
     if (await this.leave.isOnApprovedLeave(subject.id, shift.date)) {
       throw new AppError(ErrorCode.ON_LEAVE, undefined, { date: shift.date });
     }
@@ -261,6 +298,7 @@ export class AttendanceService {
           staffId: subject.id,
           date: shift.date,
           mode,
+          copresence,
           status: mark.status,
           lateMinutes: mark.lateMinutes,
           inGeofence: geo.inGeofence,
@@ -291,6 +329,7 @@ export class AttendanceService {
     );
     const assignment = await this.assignmentFacts(open.attendanceDate, subject.id);
     const mode = punchMode(actor, subject, assignment);
+    const copresence = this.checkCopresence(mode, subject.id, dto.presenceCode, now);
 
     const place: PunchPlace = open.officeId
       ? { kind: 'OFFICE', officeId: open.officeId }
@@ -336,6 +375,7 @@ export class AttendanceService {
           staffId: subject.id,
           date: open.attendanceDate,
           mode,
+          copresence,
           status,
           workedMinutes: worked,
           inGeofence: geo.inGeofence,
@@ -349,6 +389,99 @@ export class AttendanceService {
     const log = (await this.repo.findById(open.id))!;
     if (dto.isMocked) await this.raiseMockLocation(log, subject);
     return log;
+  }
+
+  // ------------------------------------------------------------ Co-presence (rolling QR)
+
+  /** The caller's key for the rolling code their phone shows when an inspector marks them. */
+  presenceKeyFor(actor: AuthUser): PresenceKeyDto {
+    return {
+      key: presenceKey(this.config.auth.refreshSecret, actor.staffId).toString('base64'),
+      periodSeconds: PRESENCE_PERIOD_SECONDS,
+      digits: PRESENCE_DIGITS,
+    };
+  }
+
+  /** A proxy punch shows the worker's phone was there: its rolling code (required by config). */
+  private checkCopresence(
+    mode: string,
+    subjectId: string,
+    code: string | undefined,
+    now: Date,
+  ): 'NOT_NEEDED' | 'CONFIRMED' {
+    const key = presenceKey(this.config.auth.refreshSecret, subjectId);
+    const outcome = copresenceOutcome(
+      mode !== 'SELF',
+      this.config.copresenceRequired,
+      code,
+      !!code && verifyPresenceCode(key, code, now),
+    );
+    if (outcome === 'MISSING' || outcome === 'WRONG') {
+      throw new AppError(ErrorCode.COPRESENCE_FAILED, undefined, { reason: outcome });
+    }
+    return outcome;
+  }
+
+  // ------------------------------------------------------------ Presence (spot checks)
+
+  /**
+   * Proves the caller is at work right now (a spot-check answer): the same one-time challenge
+   * and server face match as a punch (no fail-open), a usable GPS fix, and where they are
+   * against the geofence of their open shift. Throws NOT_CHECKED_IN without an open shift.
+   */
+  async provePresence(actor: AuthUser, proof: PresenceProof): Promise<PresenceResult> {
+    const now = this.clock.now();
+    const today = istDate(now);
+    const open = (await this.repo.findForDates(actor.staffId, [previousDay(today), today])).find(
+      (l) => l.checkinAt && !l.checkoutAt,
+    );
+    if (!open) throw new AppError(ErrorCode.NOT_CHECKED_IN);
+    const subject = await this.subject(actor.staffId);
+    const place: PunchPlace = open.officeId
+      ? { kind: 'OFFICE', officeId: open.officeId }
+      : { kind: 'WARD', wardId: open.wardId!, assignmentId: open.assignmentId ?? null };
+    checkAccuracy(place.kind, proof.accuracyM);
+    const geo = geofenceResult(await this.locationCheck(place, proof));
+    const face = await this.proveFace(actor, subject, { ...proof, type: 'SPOT_CHECK' }, now);
+    return {
+      attendanceId: open.id,
+      wardId: open.wardId,
+      inGeofence: geo.inGeofence,
+      distanceM: geo.distanceM,
+      faceScore: face.score ?? null,
+    };
+  }
+
+  /**
+   * Field staff checked in right now (today's shift, or last night's still running), with the
+   * end of their shift: the people a random spot check may pick.
+   */
+  async onDuty(): Promise<OnDuty[]> {
+    const now = this.clock.now();
+    const today = istDate(now);
+    const yesterday = previousDay(today);
+    const open = (await this.repo.findOpen(today)).filter(
+      (l) => l.wardId && l.attendanceDate >= yesterday,
+    );
+    if (open.length === 0) return [];
+    const people = await this.staff.findByIds([...new Set(open.map((l) => l.staffId))]);
+    const out: OnDuty[] = [];
+    for (const date of new Set(open.map((l) => l.attendanceDate))) {
+      const shifts = await this.shifts.shiftsFor(people, date);
+      for (const log of open.filter((l) => l.attendanceDate === date)) {
+        const shift = shifts.get(log.staffId);
+        if (!shift || shift.endsAt <= now) continue;
+        out.push({
+          attendanceId: log.id,
+          staffId: log.staffId,
+          wardId: log.wardId!,
+          date,
+          checkinAt: log.checkinAt!,
+          shiftEndsAt: shift.endsAt,
+        });
+      }
+    }
+    return out;
   }
 
   // ------------------------------------------------------------ Reads
@@ -373,7 +506,8 @@ export class AttendanceService {
       );
       filter.orAssignmentIds = placed.map((p) => p.assignmentId);
       if (q.staffId) {
-        const known = filter.staffIds.includes(q.staffId) || placed.some((p) => p.staffId === q.staffId);
+        const known =
+          filter.staffIds.includes(q.staffId) || placed.some((p) => p.staffId === q.staffId);
         if (!known) throw new AppError(ErrorCode.FORBIDDEN);
         filter.staffId = q.staffId;
       }
@@ -449,7 +583,10 @@ export class AttendanceService {
       : null;
   }
 
-  private locationCheck(place: PunchPlace, dto: CreatePunchDto): Promise<LocationCheck> {
+  private locationCheck(
+    place: PunchPlace,
+    dto: { latitude: number; longitude: number },
+  ): Promise<LocationCheck> {
     const point = { latitude: dto.latitude, longitude: dto.longitude };
     return place.kind === 'WARD'
       ? this.wards.checkLocation(place.wardId, point)
@@ -464,7 +601,7 @@ export class AttendanceService {
   private async proveFace(
     actor: AuthUser,
     subject: Staff,
-    dto: CreatePunchDto,
+    dto: FaceProof & { type: string },
     now: Date,
   ): Promise<FaceVerificationResult> {
     checkChallenge(await this.repo.findChallenge(dto.challengeId), actor.staffId, subject.id, now);
@@ -493,7 +630,7 @@ export class AttendanceService {
     return result;
   }
 
-  private faceInput(staffId: string, dto: CreatePunchDto): FaceVerificationInput {
+  private faceInput(staffId: string, dto: FaceProof): FaceVerificationInput {
     if (this.face.provider === 'aadhaar') {
       if (!dto.aadhaarPidXml || !dto.aadhaarTxn) {
         throw new AppError(

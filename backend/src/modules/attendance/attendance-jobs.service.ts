@@ -185,6 +185,12 @@ export class AttendanceJobsService {
       return leaveOn.get(date)!;
     };
     const officeIds = await this.staff.findIds({ role: Role.OFFICE_STAFF, isActive: true });
+    // Ward inspectors have no assignment row: they are expected in their own ward every day.
+    const wardInspectors = (
+      await this.staff.findByIds(
+        await this.staff.findIds({ role: Role.WARD_INSPECTOR, isActive: true }),
+      )
+    ).filter((s) => s.homeWardId);
 
     let written = 0;
     let absent = 0;
@@ -192,6 +198,9 @@ export class AttendanceJobsService {
       const expected = new Map<string, { wardId: string | null; assignmentId: string | null }>();
       for (const p of await this.rosters.approvedPlacements(date)) {
         expected.set(p.staffId, { wardId: p.wardId, assignmentId: p.assignmentId });
+      }
+      for (const s of wardInspectors) {
+        if (!expected.has(s.id)) expected.set(s.id, { wardId: s.homeWardId!, assignmentId: null });
       }
       for (const id of officeIds) {
         if (!expected.has(id)) expected.set(id, { wardId: null, assignmentId: null });
@@ -205,6 +214,8 @@ export class AttendanceJobsService {
       const leave = await onLeave(date);
       const holiday = await this.holidays.isHoliday(date);
       for (const person of people) {
+        // Nobody is absent before they joined.
+        if (istDate(person.createdAt) > date) continue;
         const place = expected.get(person.id)!;
         const shift = shifts.get(person.id)!;
         const kind = place.wardId ? 'WARD' : 'OFFICE';
@@ -296,7 +307,12 @@ export class AttendanceJobsService {
       const n = await this.attendance.setStatus(
         log.id,
         Number(log.version),
-        { status, updatedAt: now, ...(status === 'REGULARIZED' ? { isSuspicious: false } : {}) },
+        {
+          status,
+          updatedAt: now,
+          // An approved correction counts the day as attended normally: no flag, no late mark.
+          ...(status === 'REGULARIZED' ? { isSuspicious: false, isLate: false, lateMinutes: 0 } : {}),
+        },
         tx,
       );
       if (n === 0) return 0;

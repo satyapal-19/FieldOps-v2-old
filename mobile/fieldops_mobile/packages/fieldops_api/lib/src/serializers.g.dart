@@ -11,6 +11,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(AlertDtoAlertTypeEnum.serializer)
       ..add(AlertDtoSeverityEnum.serializer)
       ..add(AlertPageDto.serializer)
+      ..add(AppInfoDto.serializer)
+      ..add(AppInfoDtoFaceProviderEnum.serializer)
       ..add(ApproveAssignmentDto.serializer)
       ..add(AssignComplaintDto.serializer)
       ..add(AssignComplaintDtoPriorityEnum.serializer)
@@ -34,6 +36,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ComplaintPageDto.serializer)
       ..add(ComplaintStatusDto.serializer)
       ..add(ComplaintStatusDtoActionEnum.serializer)
+      ..add(ConversationDto.serializer)
+      ..add(ConversationDtoTypeEnum.serializer)
       ..add(CreateAssignmentDto.serializer)
       ..add(CreateChallengeDto.serializer)
       ..add(CreateHolidayDto.serializer)
@@ -53,6 +57,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(CreateTaskDtoPriorityEnum.serializer)
       ..add(CreateWardDto.serializer)
       ..add(CreateWardDtoZoneEnum.serializer)
+      ..add(DirectDto.serializer)
       ..add(EffectiveShiftDto.serializer)
       ..add(EffectiveShiftDtoShiftTypeEnum.serializer)
       ..add(EffectiveShiftDtoSource_Enum.serializer)
@@ -65,16 +70,28 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(HealthDto.serializer)
       ..add(HolidayDto.serializer)
       ..add(HolidayDtoHolidayTypeEnum.serializer)
+      ..add(InboxDto.serializer)
       ..add(LeavePageDto.serializer)
       ..add(LeaveRequestDto.serializer)
       ..add(LeaveRequestDtoLeaveTypeEnum.serializer)
       ..add(LeaveRequestDtoStatusEnum.serializer)
+      ..add(LiveDto.serializer)
+      ..add(LivePositionDto.serializer)
+      ..add(LivePositionDtoStateEnum.serializer)
       ..add(LocationCheckDto.serializer)
       ..add(LocationCheckResultDto.serializer)
       ..add(LogoutDto.serializer)
+      ..add(MarkReadDto.serializer)
+      ..add(MarkedDto.serializer)
+      ..add(MessageDto.serializer)
+      ..add(MessageDtoTypeEnum.serializer)
+      ..add(NotificationDto.serializer)
+      ..add(NotificationDtoKindEnum.serializer)
+      ..add(NotificationDtoPriorityEnum.serializer)
       ..add(OfficeDto.serializer)
       ..add(OfficeDtoZoneEnum.serializer)
       ..add(OfficeLocationCheckResultDto.serializer)
+      ..add(OrderSpotCheckDto.serializer)
       ..add(OtpRequestDto.serializer)
       ..add(OtpRequestedDto.serializer)
       ..add(OtpVerifyDto.serializer)
@@ -82,13 +99,20 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(PingBatchDto.serializer)
       ..add(PingBatchResultDto.serializer)
       ..add(PingDto.serializer)
+      ..add(PresenceKeyDto.serializer)
       ..add(ProblemDetailsDto.serializer)
       ..add(PublicComplaintDto.serializer)
       ..add(PublicComplaintDtoCategoryEnum.serializer)
       ..add(PublicComplaintDtoStatusEnum.serializer)
+      ..add(PublicWardAttendanceDto.serializer)
+      ..add(PublicWardDayDto.serializer)
+      ..add(PublicWardDto.serializer)
+      ..add(PublicWardDtoZoneEnum.serializer)
       ..add(PunchDetailsDto.serializer)
       ..add(PunchDetailsDtoModeEnum.serializer)
       ..add(PunchResultDto.serializer)
+      ..add(PushTokenDto.serializer)
+      ..add(PushTokenDtoPlatformEnum.serializer)
       ..add(PutShiftDto.serializer)
       ..add(PutShiftDtoShiftTypeEnum.serializer)
       ..add(ReadyDto.serializer)
@@ -99,7 +123,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(RegularizationRequestDtoReasonTypeEnum.serializer)
       ..add(RegularizationRequestDtoStatusEnum.serializer)
       ..add(RejectedItemDto.serializer)
+      ..add(RemovePushTokenDto.serializer)
       ..add(ResolveAlertDto.serializer)
+      ..add(RespondSpotCheckDto.serializer)
       ..add(ReviewRequestDto.serializer)
       ..add(ReviewRequestDtoDecisionEnum.serializer)
       ..add(RevokedCountDto.serializer)
@@ -112,12 +138,20 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(RouteTamperEventDtoEventTypeEnum.serializer)
       ..add(RouteTamperEventDtoSource_Enum.serializer)
       ..add(SelfAssignmentDto.serializer)
+      ..add(SendMessageDto.serializer)
+      ..add(SendMessageDtoTypeEnum.serializer)
       ..add(SessionTokensDto.serializer)
       ..add(ShiftDto.serializer)
       ..add(ShiftDtoShiftTypeEnum.serializer)
+      ..add(SpotCheckDto.serializer)
+      ..add(SpotCheckDtoStatusEnum.serializer)
+      ..add(SpotCheckDtoTriggerEnum.serializer)
+      ..add(SpotCheckPageDto.serializer)
       ..add(StaffPageDto.serializer)
       ..add(StaffProfileDto.serializer)
       ..add(StaffProfileDtoRoleEnum.serializer)
+      ..add(StaffReportDto.serializer)
+      ..add(StaffReportRowDto.serializer)
       ..add(StandingRosterDto.serializer)
       ..add(StandingRosterPageDto.serializer)
       ..add(SubmitComplaintDto.serializer)
@@ -136,6 +170,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TaskUpdateDtoFromStatusEnum.serializer)
       ..add(TaskUpdateDtoToStatusEnum.serializer)
       ..add(TestLoginDto.serializer)
+      ..add(TileManifestDto.serializer)
       ..add(UpdateHolidayDto.serializer)
       ..add(UpdateHolidayDtoHolidayTypeEnum.serializer)
       ..add(UpdateOfficeDto.serializer)
@@ -145,6 +180,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(UpdateStandingRosterDto.serializer)
       ..add(UpdateWardDto.serializer)
       ..add(UpdateWardDtoZoneEnum.serializer)
+      ..add(UploadDto.serializer)
+      ..add(UploadDtoKindEnum.serializer)
+      ..add(WardDayReportDto.serializer)
+      ..add(WardDaysDto.serializer)
       ..add(WardDto.serializer)
       ..add(WardDtoZoneEnum.serializer)
       ..add(WardPageDto.serializer)
@@ -168,8 +207,17 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(LeaveRequestDto)]),
           () => ListBuilder<LeaveRequestDto>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(LivePositionDto)]),
+          () => ListBuilder<LivePositionDto>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(NotificationDto)]),
+          () => ListBuilder<NotificationDto>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(PingDto)]),
           () => ListBuilder<PingDto>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(PublicWardDayDto)]),
+          () => ListBuilder<PublicWardDayDto>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(RegularizationRequestDto)]),
@@ -188,11 +236,23 @@ Serializers _$serializers = (Serializers().toBuilder()
               BuiltList, const [const FullType(RouteTamperEventDto)]),
           () => ListBuilder<RouteTamperEventDto>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(SpotCheckDto)]),
+          () => ListBuilder<SpotCheckDto>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(StaffProfileDto)]),
           () => ListBuilder<StaffProfileDto>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(StaffReportRowDto)]),
+          () => ListBuilder<StaffReportRowDto>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(StandingRosterDto)]),
           () => ListBuilder<StandingRosterDto>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(TamperEventDto)]),
           () => ListBuilder<TamperEventDto>())
@@ -203,8 +263,20 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(TaskDto)]),
           () => ListBuilder<TaskDto>())
       ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(WardDayReportDto)]),
+          () => ListBuilder<WardDayReportDto>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(WardDto)]),
           () => ListBuilder<WardDto>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(num)]),
+          () => ListBuilder<num>())
+      ..addBuilderFactory(
+          const FullType(BuiltMap, const [
+            const FullType(String),
+            const FullType.nullable(JsonObject)
+          ]),
+          () => MapBuilder<String, JsonObject?>())
       ..addBuilderFactory(
           const FullType(BuiltMap, const [
             const FullType(String),

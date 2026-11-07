@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Between, In, Repository } from 'typeorm';
 import { isUniqueViolation } from '../../shared/database/db-errors';
 import { RouteSummary } from './entities/route-summary.entity';
 import { WardDailySummary } from './entities/ward-daily-summary.entity';
@@ -48,6 +48,18 @@ export class SummariesRepository {
   findWardSummaries(date: string, wardIds?: readonly string[]): Promise<WardDailySummary[]> {
     return this.wards.find({
       where: wardIds ? { summaryDate: date, wardId: In([...wardIds]) } : { summaryDate: date },
+    });
+  }
+
+  /** Ward summaries in an inclusive date range, newest first (reports, citizen page). */
+  findWardSummariesBetween(
+    from: string,
+    to: string,
+    wardId: string | null,
+  ): Promise<WardDailySummary[]> {
+    return this.wards.find({
+      where: { summaryDate: Between(from, to), ...(wardId ? { wardId } : {}) },
+      order: { summaryDate: 'DESC', wardId: 'ASC' },
     });
   }
 

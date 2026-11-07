@@ -107,7 +107,6 @@ class AuthApi {
   /// 
   ///
   /// Parameters:
-  /// * [userAgent] 
   /// * [passwordLoginDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -119,7 +118,6 @@ class AuthApi {
   /// Returns a [Future] containing a [Response] with a [SessionTokensDto] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SessionTokensDto>> authControllerLogin({ 
-    required String userAgent,
     required PasswordLoginDto passwordLoginDto,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -132,7 +130,6 @@ class AuthApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
-        r'user-agent': userAgent,
         ...?headers,
       },
       extra: <String, dynamic>{
@@ -628,7 +625,6 @@ class AuthApi {
   /// 
   ///
   /// Parameters:
-  /// * [userAgent] 
   /// * [testLoginDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -640,7 +636,6 @@ class AuthApi {
   /// Returns a [Future] containing a [Response] with a [SessionTokensDto] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SessionTokensDto>> authControllerTestLogin({ 
-    required String userAgent,
     required TestLoginDto testLoginDto,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -653,7 +648,6 @@ class AuthApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
-        r'user-agent': userAgent,
         ...?headers,
       },
       extra: <String, dynamic>{
@@ -726,7 +720,6 @@ class AuthApi {
   /// 
   ///
   /// Parameters:
-  /// * [userAgent] 
   /// * [otpVerifyDto] 
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
@@ -738,7 +731,6 @@ class AuthApi {
   /// Returns a [Future] containing a [Response] with a [SessionTokensDto] as data
   /// Throws [DioException] if API call or serialization fails
   Future<Response<SessionTokensDto>> authControllerVerifyOtp({ 
-    required String userAgent,
     required OtpVerifyDto otpVerifyDto,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -751,7 +743,6 @@ class AuthApi {
     final _options = Options(
       method: r'POST',
       headers: <String, dynamic>{
-        r'user-agent': userAgent,
         ...?headers,
       },
       extra: <String, dynamic>{

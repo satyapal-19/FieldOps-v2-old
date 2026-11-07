@@ -19,6 +19,9 @@ export function HomeLinks() {
         <Link href="/login" className="rounded-md bg-smkc px-4 py-2 font-medium text-white hover:bg-smkc-light">
           {t('staffSignIn')}
         </Link>
+        <Link href="/citizen" className="btn-secondary px-4 py-2 text-base">
+          {t('citizenPortal')}
+        </Link>
       </div>
     </header>
   );

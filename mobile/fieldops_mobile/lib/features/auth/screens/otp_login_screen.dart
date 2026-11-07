@@ -21,33 +21,6 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
 
   bool _otpSent = false;
 
-  final List<Map<String, String>> _demoPersonas = [
-    {
-      'role': 'STAFF',
-      'title': 'रमेश पाटील (सफाई कामगार)',
-      'title_en': 'Ramesh Patil (Sanitation Staff)',
-      'phone': '9822011111',
-      'dept': 'स्वच्छता विभाग (Ward 4, Walchand College - WCE)',
-      'icon': '🧹',
-    },
-    {
-      'role': 'SUPERVISOR',
-      'title': 'संजय पवार (स्वच्छता निरीक्षक)',
-      'title_en': 'Sanjay Pawar (Sanitation Inspector)',
-      'phone': '9822055555',
-      'dept': 'पर्यवेक्षक (Sangli-Miraj Zone)',
-      'icon': '🦺',
-    },
-    {
-      'role': 'ADMIN',
-      'title': 'विकास मोरे (उपायुक्त)',
-      'title_en': 'Vikas More (Dy. Commissioner)',
-      'phone': '9822066666',
-      'dept': 'प्रशासन व आयुक्त मुख्यालय',
-      'icon': '🏛️',
-    },
-  ];
-
   @override
   void dispose() {
     _phoneController.dispose();
@@ -71,7 +44,7 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
     if (success && mounted) {
       setState(() {
         _otpSent = true;
-        _otpController.text = '123456';
+        _otpController.clear();
       });
     }
   }
@@ -94,15 +67,6 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
     );
   }
 
-  void _selectDemoPersona(String phone) {
-    setState(() {
-      _phoneController.text = phone;
-      _otpSent = true;
-      _otpController.text = '123456';
-    });
-    _authController.verifyOtp(phone, '123456');
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -114,7 +78,6 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
           child: Obx(() {
             // Observe locale for immediate reactive text updates
             final _ = _localeController.currentLocale.value;
-            final isEn = _localeController.currentLocale.value.languageCode == 'en';
             return SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -343,98 +306,6 @@ class _OtpLoginScreenState extends State<OtpLoginScreen> {
                   ),
 
                   const SizedBox(height: 20),
-
-                  // 1-Click Demo Login Personas Section
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.bolt, color: Colors.amber.shade700, size: 20),
-                            const SizedBox(width: 6),
-                            Text(
-                              'demo_login_title'.tr,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'demo_login_desc'.tr,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.subtle,
-                            fontFamily: 'NotoSansDevanagari',
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                        ..._demoPersonas.map((persona) => Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: InkWell(
-                            onTap: () => _selectDemoPersona(persona['phone']!),
-                            borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF9FAFB),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: const Color(0xFFE5E7EB)),
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(persona['icon']!, style: const TextStyle(fontSize: 22)),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          isEn ? (persona['title_en'] ?? persona['title']!) : persona['title']!,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 13,
-                                            fontFamily: 'NotoSansDevanagari',
-                                          ),
-                                        ),
-                                        const SizedBox(height: 1),
-                                        Text(
-                                          '${persona['dept']} • Mob: ${persona['phone']}',
-                                          style: TextStyle(
-                                            color: Colors.grey.shade600,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.primary),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )),
-                      ],
-                    ),
-                  ),
 
                   const SizedBox(height: 16),
 

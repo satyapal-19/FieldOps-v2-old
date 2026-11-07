@@ -59,6 +59,8 @@ export enum ErrorCode {
   CHALLENGE_INVALID = 'CHALLENGE_INVALID',
   CHALLENGE_EXPIRED = 'CHALLENGE_EXPIRED',
   FACE_MISMATCH = 'FACE_MISMATCH',
+  SPOT_CHECK_CLOSED = 'SPOT_CHECK_CLOSED',
+  COPRESENCE_FAILED = 'COPRESENCE_FAILED',
 
   // Face verification
   FACE_PROVIDER_UNAVAILABLE = 'FACE_PROVIDER_UNAVAILABLE',
@@ -180,6 +182,14 @@ export const ERROR_DEFINITIONS: Record<ErrorCode, ErrorDefinition> = {
     title: 'The face check took too long; start it again',
   },
   [ErrorCode.FACE_MISMATCH]: { status: 422, title: 'The face did not match; try again' },
+  [ErrorCode.COPRESENCE_FAILED]: {
+    status: 422,
+    title: "Scan the worker's FieldOps code on their own phone to mark them",
+  },
+  [ErrorCode.SPOT_CHECK_CLOSED]: {
+    status: 422,
+    title: 'This spot check is no longer open',
+  },
 
   [ErrorCode.FACE_PROVIDER_UNAVAILABLE]: {
     status: 503,
